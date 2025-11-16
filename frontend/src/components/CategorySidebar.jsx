@@ -18,7 +18,6 @@ const CategorySidebar = () => {
 
   return (
     <aside className="category-sidebar">
-      <h2 className="sidebar-title">Categories</h2>
       <ul className="category-list">
         {categories.map((category, index) => (
           <li

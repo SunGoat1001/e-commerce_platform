@@ -1,36 +1,29 @@
 .category-sidebar {
     background-color: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    height: fit-content;
-    position: sticky;
-    top: 90px;
-}
-
-.sidebar-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin: 0 0 1.5rem 0;
-    color: #2c3e50;
-    border-bottom: 3px solid #3498db;
-    padding-bottom: 0.75rem;
+    padding: 0.5rem;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .category-list {
     list-style: none;
     padding: 0;
     margin: 0;
+    flex: 1;
 }
 
 .category-item {
-    padding: 0.75rem 1rem;
-    margin-bottom: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    margin-bottom: 0.25rem;
     cursor: pointer;
-    border-radius: 6px;
+    border-radius: 4px;
     transition: all 0.3s;
     color: #34495e;
     font-weight: 400;
+    font-size: 0.8rem;
 }
 
 .category-item:hover {

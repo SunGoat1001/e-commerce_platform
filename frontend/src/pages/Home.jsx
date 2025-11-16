@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import CategorySidebar from "../components/CategorySidebar";
 import ProductGrid from "../components/ProductGrid";
+import Banner from "../components/Banner";
+import BrandCarousel from "../components/BrandCarousel";
+import ServicesSidebar from "../components/ServicesSidebar";
 import "../styles/Home.css";
 
 const Home = () => {
@@ -88,7 +91,29 @@ const Home = () => {
 
   return (
     <div className="home-container">
-      <CategorySidebar />
+      <div className="three-column-layout">
+        {/* Left Column - Category Sidebar */}
+        <div className="left-column">
+          <CategorySidebar />
+        </div>
+
+        {/* Middle Column - Banner + Brand Carousel */}
+        <div className="middle-column">
+          <div className="banner-section">
+            <Banner />
+          </div>
+          <div className="carousel-section">
+            <BrandCarousel />
+          </div>
+        </div>
+
+        {/* Right Column - Services */}
+        <div className="right-column">
+          <ServicesSidebar />
+        </div>
+      </div>
+
+      {/* Product Grid Section */}
       <main className="main-content">
         {error ? (
           <div className="error-message">
