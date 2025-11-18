@@ -1,6 +1,7 @@
 const User = require('../../models/user.model.js');
 const md5 = require('md5');
 const ForgotPassword = require('../../models/forgot-password.model.js');
+const Cart = require('../../models/cart.model.js');
 const generate = require('../../helper/generate.js');
 const sendMailHelper = require('../../helper/sendMail.js');
 
@@ -100,6 +101,17 @@ module.exports.loginPost = async (req, res) => {
             });
         }
 
+        const cart = await Cart.findOne({ user_id: user._id });
+
+        if (cart) {
+            res.cookie('cartId', cart._id.toString(), { httpOnly: true });
+        } else {
+            await Cart.updateOne(
+                { _id: req.cookies.cartId },
+                { user_id: user._id }
+            );
+        }
+
         res.cookie('tokenUser', user.tokenUser, { httpOnly: true });
 
         res.redirect('/');
@@ -113,6 +125,7 @@ module.exports.loginPost = async (req, res) => {
 module.exports.logout = async (req, res) => {
     try {
         res.clearCookie('tokenUser');
+        res.clearCookie('cartId');
         res.redirect('/user/login');
     } catch (err) {
         console.error("Error logging out user:", err);
@@ -156,7 +169,7 @@ module.exports.forgotPasswordPost = async (req, res) => {
             expiresAt: new Date(Date.now() + 5 * 60 * 1000) // Set expiration time to 5 minutes from now
         });
         await forgotPasswordEntry.save();
-        
+
         const emailTemplate = `
 <!DOCTYPE html>
 <html lang="vi">
@@ -236,7 +249,7 @@ module.exports.forgotPasswordPost = async (req, res) => {
 </body>
 </html>
         `;
-        
+
         await sendMailHelper.sendEmail(
             email,
             "🔐 Xác thực OTP - Không chia sẻ mã này",
@@ -360,6 +373,40 @@ module.exports.resetPasswordPost = async (req, res) => {
     }
     catch (err) {
         console.error("Error resetting password:", err);
+        res.status(500).send("Internal Server Error");
+    }
+};
+
+// [GET] /info
+module.exports.info = async (req, res) => {
+    try {
+        const user = await User.findOne({ _id: req.user._id, deleted: false });
+
+        console.log("Rendering user info for:", user);
+        res.render("client/pages/user/info.pug", {
+            pageTitle: "User Information",
+            description: "View and update your information",
+            user
+        });
+    } catch (err) {
+        console.error("Error rendering user info page:", err);
+        res.status(500).send("Internal Server Error");
+    }
+};
+
+// [POST] /info
+module.exports.infoPost = async (req, res) => {
+    try {
+        const user = req.user;
+        const { fullName, email, phone } = req.body;
+        await User.updateOne(
+            { _id: user._id, deleted: false },
+            { $set: { fullName, email, phone } }
+        );
+        req.flash('success', 'Information updated successfully!');
+        res.redirect('/user/info');
+    } catch (err) {
+        console.error("Error updating user info:", err);
         res.status(500).send("Internal Server Error");
     }
 };
