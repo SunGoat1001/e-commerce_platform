@@ -54,11 +54,11 @@ module.exports.registerPost = async (req, res, next) => {
     // Tuy nhiên, để giả lập gần nhất, ta có thể trả về tokenUser
 
     // *Lưu ý về Cookie:* Trong môi trường API, việc đặt cookie cần cẩn thận (CORS, SameSite).
-    res.cookie("tokenUser", newUser.tokenUser, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    // res.cookie("tokenUser", newUser.tokenUser, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production",
+    //   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    // });
 
     // Trả về phản hồi thành công
     return ResponseFormatter.success(
