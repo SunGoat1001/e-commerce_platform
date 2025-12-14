@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema(
         fullName: { type: String, required: true },
         email: { type: String, required: true, unique: true },
         password: { type: String, required: true },
-        tokenUser: { type: String, default: generate.generateRandomString(32)},
+        tokenUser: { type: String, default: () => generate.generateRandomString(32)},
         phone: { type: String },
         avatar: { type: String },
         createdAt: { type: Date, default: Date.now },
