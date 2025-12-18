@@ -50,10 +50,10 @@ router.get('/:id',
 /**
  * @route   POST /api/v1/admin/products
  * @desc    Create new product
- * @access  Private (product_create permission)
+ * @access  Private (products_create permission)
  */
 router.post('/',
-    permission.requirePermission('product_create'),
+    permission.requirePermission('products_create'),
     upload.single('thumbnail'),
     uploadCloudinary('products/thumbnails'),
     productValidator.createProduct,
