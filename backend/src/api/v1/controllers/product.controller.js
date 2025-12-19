@@ -89,7 +89,9 @@ const getAllProducts = async (req, res, next) => {
         ]);
 
         // Calculate discounted prices
-        const productsWithPrices = priceNewProduct(products);
+        products.forEach((product) => {
+            product.priceNew = priceNewProduct(product);
+        });
 
         // Pagination metadata
         const pagination = {
@@ -101,7 +103,7 @@ const getAllProducts = async (req, res, next) => {
 
         return ResponseFormatter.paginated(
             res,
-            productsWithPrices,
+            products,
             pagination,
             'Products retrieved successfully'
         );

@@ -25,7 +25,7 @@ block main
                     `/${prefixAdmin}/products/change-multi?_method=PATCH`
                 )
             .col-6.text-end
-                if role.permissions.includes('product_create')
+                if role.permissions.includes('products_create')
                     a(
                         href=`/${prefixAdmin}/products/create`
                         class="btn btn-primary"
