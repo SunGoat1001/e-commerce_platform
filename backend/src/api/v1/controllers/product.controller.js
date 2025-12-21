@@ -197,7 +197,7 @@ const getProductsByCategory = async (req, res, next) => {
         const { slugCategory } = req.params;
         const {
             page = 1,
-            limit = 20,
+            limit = 24,
             sort = "createdAt",
             order = "desc",
         } = req.query;

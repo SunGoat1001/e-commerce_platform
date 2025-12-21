@@ -8,6 +8,8 @@ const sendMailHelper = require("../../../utils/sendMail.js");
 // Bạn nên đảm bảo các module này tồn tại trong ứng dụng của mình.
 const ApiError = require("../../../utils/apiError.js");
 const ResponseFormatter = require("../../../utils/response.js");
+const Role = require("../../../models/role.model.js");
+const Account = require("../../../models/account.model.js");
 
 // [GET] /register (Route này thường không cần thiết trong API, nhưng giữ lại để đồng bộ)
 // API Endpoint thường không cần GET cho trang đăng ký.
@@ -620,6 +622,28 @@ module.exports.becomeSeller = async (req, res, next) => {
       { _id: req.user._id, deleted: false },
       { $set: updateData }
     );
+
+    let findRoles = {
+      deleted: false,
+    };
+
+    const roles = await Role.find(findRoles);
+    const shopRoleId = roles.find((role) => role.title === "Shop")?._id;
+
+    const user = await User.findOne({
+      _id: req.user._id,
+      deleted: false,
+    }).select("-tokenUser -deleted -__v"); // isSeller and shopName are included by default
+
+    // Validate and create the account
+    const newAccount = new Account({
+      fullName: user.fullName,
+      email: user.email,
+      password: user.password,
+      roleId: shopRoleId,
+    });
+
+    await newAccount.save();
 
     return ResponseFormatter.success(
       res,
