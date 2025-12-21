@@ -234,6 +234,17 @@ const seedRoles = async (permissions) => {
     console.log("🌱 Seeding Roles..."); // KHẮC PHỤC LỖI: Sử dụng p.id (getter string) thay vì p._id để đảm bảo trích xuất ID hợp lệ
     const adminPermissionIds = permissions.map((p) => p.id);
     const createdRoles = [];
+    // Find CRUD product permissions
+    const productCrudPermissionIds = permissions
+        .filter((p) =>
+            [
+                PERMISSIONS.PRODUCTS_VIEW,
+                PERMISSIONS.PRODUCTS_CREATE,
+                PERMISSIONS.PRODUCTS_EDIT,
+                PERMISSIONS.PRODUCTS_DELETE,
+            ].includes(p.key)
+        )
+        .map((p) => p.id);
     const rolesData = [
         {
             title: "Admin",
@@ -254,6 +265,11 @@ const seedRoles = async (permissions) => {
             title: "Viewer",
             description: "Can only view content",
             permissions: adminPermissionIds.filter((_, i) => i % 4 === 0),
+        },
+        {
+            title: "Shop",
+            description: "Can manage their own products (CRUD)",
+            permissions: productCrudPermissionIds,
         },
     ];
 
@@ -369,15 +385,27 @@ const seedAccounts = async (roles, count = 5) => {
 
 // ... (seedProductCategories, seedProducts, seedCarts, seedOrders, seedForgotPasswords, seedSettingsGeneral giữ nguyên) ...
 
-// Seed Product Categories
-const seedProductCategories = async (count = 10) => {
+// Seed Product Categories (refactored for fixed list)
+const seedProductCategories = async () => {
     console.log("🌱 Seeding Product Categories...");
+    const categoryNames = [
+        "Computers",
+        "Phones",
+        "Furniture",
+        "Kitchen",
+        "Women's Wear",
+        "Men's Wear",
+        "Accessories",
+        "Women's Shoes",
+        "Men's Shoes",
+        "Sports",
+        "Outdoor",
+        "Automotive",
+    ];
     const createdCategories = [];
-    const rootCategories = []; // Create root categories
-
-    for (let i = 0; i < Math.ceil(count / 3); i++) {
+    for (let i = 0; i < categoryNames.length; i++) {
         try {
-            const title = faker.commerce.department() + " " + faker.string.alpha(3);
+            const title = categoryNames[i];
             const category = await ProductCategory.create({
                 title: title,
                 description: faker.lorem.sentence(),
@@ -389,39 +417,16 @@ const seedProductCategories = async (count = 10) => {
                 thumbnail: faker.image.url(),
             });
             createdCategories.push(category);
-            rootCategories.push(category);
         } catch (error) {
-            console.error(`✗ Error creating root category:`, error.message);
-        }
-    } // Create subcategories
-
-    for (let i = 0; i < count - rootCategories.length; i++) {
-        try {
-            const parentId =
-                rootCategories[Math.floor(Math.random() * rootCategories.length)]._id;
-            const title = faker.commerce.productAdjective() + " " + faker.word.noun();
-            const category = await ProductCategory.create({
-                title: title,
-                description: faker.lorem.sentence(),
-                status: "active",
-                position: i,
-                parent_id: parentId,
-                slug: generateSlug(title),
-                images: [faker.image.url()],
-                thumbnail: faker.image.url(),
-            });
-            createdCategories.push(category);
-        } catch (error) {
-            console.error(`✗ Error creating subcategory:`, error.message);
+            console.error(`✗ Error creating category:`, error.message);
         }
     }
-
     console.log(`✓ Created ${createdCategories.length} product categories`);
     return createdCategories;
 };
 
-// Seed Products
-const seedProducts = async (categories, accounts, count = 50) => {
+// Seed Products (refactored for categoryid and Flickr image)
+const seedProducts = async (categories, accounts, count = 200) => {
     console.log("🌱 Seeding Products...");
     const products = [];
     const brands = [
@@ -441,19 +446,21 @@ const seedProducts = async (categories, accounts, count = 50) => {
 
     for (let i = 0; i < count; i++) {
         const title = faker.commerce.productName();
-        const price = faker.number.int({ min: 1, max: 1000 });
-        const discount = faker.number.int({ min: 0, max: 50 });
-        const category = categories[Math.floor(Math.random() * categories.length)]; // Đảm bảo luôn có account để gán createdBy
+        const price = faker.number.float({ min: 1, max: 10000 }).toFixed(2);
+        const discount = faker.number.int({ min: 0, max: 80 });
+        const category = categories[Math.floor(Math.random() * categories.length)];
         const createdByAccount =
             accounts.length > 0
                 ? accounts[Math.floor(Math.random() * accounts.length)]
                 : null;
+        // Use category._id and category.title for image
+        const flickrCategory = category.title.replace(/[^a-zA-Z0-9]/g, "");
         products.push({
             title: title,
             slug: generateSlug(title),
             description: faker.commerce.productDescription(),
             product_category_id: category._id,
-            category: category.title, // Add optional denormalized field if your schema supports it
+            category: category.title,
             price: price,
             discountPercentage: discount,
             rating: faker.number.int({ min: 1, max: 5 }),
@@ -477,8 +484,8 @@ const seedProducts = async (categories, accounts, count = 50) => {
                 "Low Stock",
             ]),
             reviews: generateReviews(),
-            images: [faker.image.url()],
-            thumbnail: faker.image.url(),
+            images: [faker.image.urlLoremFlickr({ category: flickrCategory })],
+            thumbnail: faker.image.urlLoremFlickr({ category: flickrCategory }),
             status: "active",
             feature: faker.helpers.arrayElement(["0", "1"]),
             position: i,
@@ -672,7 +679,7 @@ const seedDatabase = async () => {
         );
 
         const categories = await seedProductCategories(10);
-        const products = await seedProducts(categories, accounts, 50);
+        const products = await seedProducts(categories, accounts, 200);
         const carts = await seedCarts(users, products, 5);
         await seedOrders(carts, products, users, 10);
         await seedForgotPasswords(3);

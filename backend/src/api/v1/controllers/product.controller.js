@@ -246,7 +246,12 @@ const getProductsByCategory = async (req, res, next) => {
         ]);
 
         // Calculate discounted prices
-        const productsWithPrices = priceNewProduct(products);
+        const productsWithPrices = [];
+
+        products.forEach(product => {
+            product.priceNew = priceNewProduct(product);
+            productsWithPrices.push(product);
+        })
 
         // Pagination metadata
         const pagination = {
