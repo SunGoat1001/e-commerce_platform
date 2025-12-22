@@ -49,7 +49,6 @@ export default async function CategoryPage({ params, searchParams }) {
     params = await params;
     searchParams = await searchParams;
     const slug = params.slug;
-    console.log(slug);
     const page = Number(searchParams?.page ?? 1) || 1;
 
     const res = await fetch(`${API_URL}/products/category/${slug}?page=${page}`);

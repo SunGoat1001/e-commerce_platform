@@ -10,3 +10,6 @@ Sửa tính năng đổi trạng thái active và inactive với toán tử !
 /admin/seller-product
 [] upload nhiều ảnh hơn và đưa riêng ra trường image
 [] Thêm phần specialize
+
+
+[] Hiển thị shop trong page details

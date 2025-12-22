@@ -85,7 +85,6 @@ export function SignupForm({ ...props }) {
       const data = await response.json();
 
       if (!response.ok) {
-        console.log(data);
         setError(data.error.message || "Lỗi phản hồi");
         setLoading(false);
         return;
