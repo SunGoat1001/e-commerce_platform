@@ -56,6 +56,8 @@ export default function AddToCartButton({ productId, stock }) {
 
       const data = await response.json();
 
+      console.log(data);
+
       if (!response.ok) {
         throw new Error(data.error.message || "Failed to add product to cart");
       }

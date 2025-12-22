@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import OrderSummary from "@/components/order-summary";
 import { API_URL } from "@/lib/constants";
+import { loadStripe } from "@stripe/stripe-js";
 
 export default function CheckoutForm() {
   const router = useRouter();

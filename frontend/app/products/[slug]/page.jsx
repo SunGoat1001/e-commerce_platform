@@ -1,6 +1,7 @@
 import Header from "@/components/header";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import SellerInfo from "@/components/seller-info";
 import AddToCartButton from "@/components/add-to-cart-button";
 import { API_URL } from "@/lib/constants";
 import { SlashIcon } from "lucide-react";
@@ -217,6 +218,9 @@ export default async function ProductDetail({ params }) {
 
             {/* Add to Cart Component */}
             <AddToCartButton productId={product._id} stock={product.stock} />
+
+            {/* Seller Info */}
+            <SellerInfo accountId={product.accountId} />
 
             {/* Product Specifications */}
             <div className="mt-8 border-t border-gray-200 pt-8">
