@@ -2,27 +2,41 @@ extends ../../layout/auth.pug
 include ../../mixins/alert.pug
 
 block main
-    h1.text-center.mt-4.mb-4 Login
+    //- Container chính của form
+    .login-card
+        .login-header
+            //- Bạn có thể thêm logo ở đây nếu muốn: img(src="/logo.png" width="80")
+            h1 Sign in
+            p Continue to Admin Dashboard
 
-    +alert-success(5000)
-    +alert-error(5000)
+        +alert-success(5000)
+        +alert-error(5000)
 
-    form(
-        action=`/${prefixAdmin}/auth/login`
-        method="POST"
-        class="mx-auto p-4 shadow rounded bg-light"
-        style="max-width: 400px;"
-    )
-        .mb-3
-            label(for="email" class="form-label") Email
-            input#email.form-control(type="email" name="email" placeholder="Enter your email" required)
+        form(
+            action=`/${prefixAdmin}/auth/login`
+            method="POST"
+        )
+            .form-group.mb-4
+                //- Google thường ít dùng Label bên ngoài, nhưng để UX tốt ta vẫn giữ
+                label(for="email") Email
+                input#email.form-control(
+                    type="email" 
+                    name="email" 
+                    placeholder="Enter your email" 
+                    required
+                )
 
-        .mb-3
-            label(for="password" class="form-label") Password
-            input#password.form-control(type="password" name="password" placeholder="Enter your password" required)
+            .form-group.mb-4
+                label(for="password") Password
+                input#password.form-control(
+                    type="password" 
+                    name="password" 
+                    placeholder="Enter your password" 
+                    required
+                )
 
-        .d-grid
-            button.btn.btn-primary.w-100(type="submit") Log In
+            .d-grid.mb-3
+                button.btn.btn-google-style.w-100(type="submit") Next
 
-        .text-center.mt-3
-            a(href=`/${prefixAdmin}/auth/forgot-password`) Forgot password?
+            .text-center
+                a.forgot-password-link(href=`/${prefixAdmin}/auth/forgot-password`) Forgot password?
