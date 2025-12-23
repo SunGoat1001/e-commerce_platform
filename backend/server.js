@@ -16,26 +16,30 @@ const session = require('express-session');
 const moment = require('moment');
 const multer = require('multer');
 const favicon = require('serve-favicon');
-const upload = multer({ dest: 'uploads/' }); // Cấu hình cơ bản
+
+// === [FIX VERCEL] THAY ĐỔI CẤU HÌNH MULTER ===
+// Thay vì lưu vào disk (dest: 'uploads/'), ta lưu vào Memory (RAM)
+// để tránh lỗi EROFS: read-only file system trên Vercel.
+const upload = multer({ storage: multer.memoryStorage() }); 
 
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 
-// Import logger tùy chỉnh (giả định file này tồn tại)
+// Import logger tùy chỉnh
 const logger = require('./src/shared/logger.js');
 
 require('dotenv').config();
 
-// Import configs (giả định các file này tồn tại)
+// Import configs
 const database = require('./config/database.js');
 const corsConfig = require('./config/cors.js');
 const systemConfig = require('./config/system.js');
 
-// Import routes (sử dụng routes mẫu cho Client)
+// Import routes
 const apiV1Routes = require('./src/api/v1/routes/index.route.js');
 const adminRoutes = require('./src/admin/routes/index.route.js');
 
-// Import middlewares (giả định các file này tồn tại)
+// Import middlewares
 const { errorHandler, notFound } = require('./src/api/v1/middlewares/errorHandler.middleware.js');
 
 // Connect to database
@@ -53,8 +57,8 @@ app.set('view engine', 'pug');
 
 // App locals - available in all views
 app.locals.prefixAdmin = systemConfig.prefixAdmin;
-app.locals.moment = moment; // SỬ DỤNG moment TRONG VIEWS
-app.locals.upload = upload; // SỬ DỤNG multer TRONG ROUTE
+app.locals.moment = moment;
+app.locals.upload = upload;
 
 // ======================
 // SECURITY MIDDLEWARE
@@ -89,7 +93,6 @@ app.use(
 // ======================
 // SESSION, FLASH VÀ FAVICON
 // ======================
-// Express Session (cần trước flash)
 app.use(session({
     secret: process.env.SESSION_SECRET || 'huydeptrai',
     resave: false,
@@ -97,27 +100,26 @@ app.use(session({
     cookie: { maxAge: 60000 * 24 }
 }));
 
-// Express Flash
 app.use(flash());
 
-// Favicon
-app.use(favicon(path.join(__dirname, 'public', 'images', 'favicon.ico')));
+// Favicon - Kiểm tra file tồn tại trước khi dùng để tránh lỗi nếu thiếu file
+const faviconPath = path.join(__dirname, 'public', 'images', 'favicon.ico');
+try {
+    app.use(favicon(faviconPath));
+} catch (err) {
+    console.log('Favicon not found, skipping...');
+}
 
-
-// ======================
-// LOGGING
-// ======================
-// if (process.env.NODE_ENV === 'development') {
-//     app.use(morgan('dev'));
-// } else {
-//     app.use(morgan('combined'));
-// }
 
 // ======================
 // STATIC FILES
 // ======================
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// [LƯU Ý QUAN TRỌNG]: Trên Vercel, thư mục 'uploads' sẽ rỗng vì ta không ghi file vào đó được.
+// Bạn nên comment dòng này lại hoặc để đó nhưng hiểu là nó sẽ không phục vụ file upload mới.
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.use('/tinymce', express.static(path.join(__dirname, 'node_modules', 'tinymce')));
 
 // ======================
