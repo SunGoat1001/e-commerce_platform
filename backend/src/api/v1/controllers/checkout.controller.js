@@ -27,6 +27,43 @@ async function decrementProductStock(products) {
   await Product.bulkWrite(ops);
 }
 
+// Helper: update cart after successful checkout by decrementing purchased items
+// Only affects items that were actually part of the checkout and removes
+// items that reach zero. Leaves untouched items intact.
+async function applyCartPostCheckout(cartId, purchasedItems) {
+  if (!cartId || !Array.isArray(purchasedItems) || purchasedItems.length === 0) return;
+
+  const cart = await Cart.findById(cartId).lean();
+  if (!cart || !Array.isArray(cart.products)) return;
+
+  const makeKey = (pid, variantId) => `${pid?.toString() || ''}::${variantId || ''}`;
+
+  // Aggregate purchased quantities per product(+variant)
+  const purchasedMap = new Map();
+  for (const p of purchasedItems) {
+    const key = makeKey(p.product_id, p.variantId);
+    const qty = Math.max(0, p.quantity || 0);
+    purchasedMap.set(key, (purchasedMap.get(key) || 0) + qty);
+  }
+
+  // Build updated cart products list by decrementing purchased quantities
+  const updatedProducts = [];
+  for (const item of cart.products) {
+    const key = makeKey(item.product_id, item.variantId);
+    const purchasedQty = purchasedMap.get(key) || 0;
+    const currentQty = Math.max(0, item.quantity || 0);
+    const remaining = currentQty - purchasedQty;
+
+    if (remaining > 0) {
+      // Preserve any additional fields on item, just update quantity
+      updatedProducts.push({ ...item, quantity: remaining });
+    }
+    // If remaining <= 0, omit this item (effectively remove from cart)
+  }
+
+  await Cart.updateOne({ _id: cartId }, { $set: { products: updatedProducts } });
+}
+
 // [GET] /checkout (Xem trang thanh toán)
 module.exports.index = async (req, res, next) => {
   try {
@@ -426,10 +463,12 @@ module.exports.order = async (req, res, next) => {
       newOrder.paidAt = new Date();
       // newOrder.status = "delivered"
       await newOrder.save();
+      // Update cart: decrement quantities for purchased items only
+      await applyCartPostCheckout(cartId, productsForOrder);
     }
 
-    // 5. Xóa giỏ hàng sau khi đặt hàng
-    await Cart.updateOne({ _id: cartId }, { $set: { products: [] } });
+    // 5. Không xóa toàn bộ giỏ hàng đối với thanh toán Stripe
+    // Stripe orders keep cart intact until payment is confirmed
 
     // 6. Prepare response based on payment method
     const responseData = {
@@ -448,7 +487,7 @@ module.exports.order = async (req, res, next) => {
       responseData.message = "Order placed successfully (COD).";
     }
 
-    
+
 
     return ResponseFormatter.success(res, responseData, responseData.message);
   } catch (err) {
@@ -563,6 +602,9 @@ module.exports.confirmPayment = async (req, res, next) => {
         order.isPaid = true;
         order.paidAt = new Date();
         await order.save();
+
+        // Update cart: only decrement purchased items for this order
+        await applyCartPostCheckout(order.cart_id, order.products);
 
         console.log(
           `✅ Order ${orderId} marked as paid. PaymentIntent: ${paymentIntent.id}`
