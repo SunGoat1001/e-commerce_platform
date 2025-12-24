@@ -18,28 +18,50 @@ if (uploadImageMultipleWrappers.length) {
     const renderPreviews = () => {
       imagePreviewContainer.innerHTML = "";
 
+      if (selectedFiles.length === 0) {
+        return;
+      }
+
       selectedFiles.forEach((file, index) => {
         const reader = new FileReader();
         reader.onload = (event) => {
           const previewItem = document.createElement("div");
-          previewItem.className = "image-preview-item position-relative me-2 mb-2";
+          previewItem.className = "multi-image-preview-item";
 
+          // Image thumbnail
           const img = document.createElement("img");
           img.src = event.target.result;
-          img.className = "form-img-preview";
+          img.className = "multi-image-thumbnail";
+          img.alt = `Image ${index + 1}`;
 
-          const closeButton = document.createElement("button");
-          closeButton.className = "close-button";
-          closeButton.innerText = "X";
-          closeButton.type = "button";
-          closeButton.addEventListener("click", () => {
+          // Index number badge
+          const indexBadge = document.createElement("span");
+          indexBadge.className = "image-index-badge";
+          indexBadge.textContent = index + 1;
+
+          // Main badge (only for first image)
+          if (index === 0) {
+            const mainBadge = document.createElement("span");
+            mainBadge.className = "image-main-badge";
+            mainBadge.textContent = "Main";
+            previewItem.appendChild(mainBadge);
+          }
+
+          // Remove button
+          const removeButton = document.createElement("button");
+          removeButton.className = "multi-image-remove-btn";
+          removeButton.innerHTML = "&times;";
+          removeButton.type = "button";
+          removeButton.title = "Remove image";
+          removeButton.addEventListener("click", () => {
             selectedFiles.splice(index, 1);
             syncInputFiles();
             renderPreviews();
           });
 
           previewItem.appendChild(img);
-          previewItem.appendChild(closeButton);
+          previewItem.appendChild(indexBadge);
+          previewItem.appendChild(removeButton);
           imagePreviewContainer.appendChild(previewItem);
         };
         reader.readAsDataURL(file);
