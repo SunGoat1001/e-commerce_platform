@@ -78,8 +78,11 @@ router.get("/edit/:id", sellerProductController.renderEdit);
  */
 router.patch(
   "/edit/:id",
-  upload.single("thumbnail"),
-  uploadCloudinary("products/thumbnails"),
+  upload.fields([
+    { name: "thumbnail", maxCount: 1 },
+    { name: "images", maxCount: 10 },
+  ]),
+  uploadCloudinary(),
   sellerProductController.patchProduct
 );
 

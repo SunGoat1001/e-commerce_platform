@@ -229,28 +229,50 @@ const patchProduct = async (req, res) => {
       req.body.description = await processDescription(req.body.description);
     }
 
-    // Handle new thumbnail
-    if (req.file && req.file.path) {
-      req.body.thumbnail = req.file.path;
+    // Handle images update (add new images, remove selected ones)
+    let imagesToSet;
+    const removeImages = Array.isArray(req.body.removeImages)
+      ? req.body.removeImages
+      : req.body.removeImages
+      ? [req.body.removeImages]
+      : [];
+
+    // Normalize new images coming from Cloudinary middleware
+    let newImages = [];
+    if (req.body.images) {
+      newImages = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
+    }
+
+    if (removeImages.length > 0 || newImages.length > 0) {
+      const kept = (existingProduct.images || []).filter((img) => !removeImages.includes(img));
+      imagesToSet = kept.concat(newImages);
     }
 
     // Remove fields that shouldn't be updated
     delete req.body.updatedBy;
     delete req.body.createdBy;
     delete req.body.accountId; // Prevent changing ownership
+    delete req.body.images; // We'll set images explicitly if needed
+    delete req.body.removeImages;
 
     // Update product
-    await Product.findByIdAndUpdate(
-      id,
-      {
-        ...req.body,
-        $push: {
-          updatedBy: {
-            accountId: res.locals.user._id,
-            updatedAt: new Date(),
-          },
+    const updatePayload = {
+      ...req.body,
+      $push: {
+        updatedBy: {
+          accountId: res.locals.user._id,
+          updatedAt: new Date(),
         },
       },
+    };
+
+    if (imagesToSet) {
+      updatePayload.images = imagesToSet;
+    }
+
+    await Product.findByIdAndUpdate(
+      id,
+      updatePayload,
       { new: true, runValidators: true }
     );
 

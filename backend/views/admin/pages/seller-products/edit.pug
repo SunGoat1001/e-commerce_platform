@@ -31,6 +31,11 @@ block main
                     label(for="description") Description
                     textarea.form-control.textarea-tinymce(name="description" id="description" rows="3")= product.description
 
+            .col-6
+                .form-group
+                    label(for="brand") Brand
+                    input.form-control(type="text" name="brand" id="brand" value=product.brand)
+
             .col-4
                 .form-group
                     label(for="price") Price *
@@ -66,9 +71,32 @@ block main
                         option(value="active" selected=product.status === 'active') Active
                         option(value="inactive" selected=product.status === 'inactive') Inactive
 
+            .col-12
+                .form-group
+                    label Existing Images
+                    if product.images && product.images.length
+                        .d-flex.flex-wrap.gap-3
+                            each image, i in product.images
+                                .text-center.me-3.mb-3
+                                    img(src=image alt="Product Image" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;")
+                                    .form-check.mt-2
+                                        - const removeId = 'remove-' + i
+                                        input.form-check-input(type="checkbox" name="removeImages" id=removeId value=image)
+                                        label.form-check-label(for=removeId) Remove
+                    else
+                        p.text-muted No images uploaded
+
+            .col-12
+                .form-group
+                    label(for="images") Add Images
+                    input.form-control(type="file" name="images" id="images" accept="image/*" upload-image-input multiple)
+                    .image-preview-container.d-flex.flex-wrap.mt-2
+                        //- New image previews will appear here
+
             .col-12.text-end.mt-4
                 a.btn.btn-secondary.me-2(href=`/${prefixAdmin}/seller/products`) Cancel
                 button.btn.btn-primary(type='submit') Update Product
 
     script(src="/admin/js/tinymce-config.js")
     script(src="/admin/js/upload-image.js")
+    script(src="/admin/js/upload-multiple-image.js")

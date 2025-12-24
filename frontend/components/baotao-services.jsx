@@ -309,7 +309,7 @@ export default async function BaotaoService() {
             <div className="user-mytao" data-spm="function">
               <div className="mytao-content">
                 <a
-                  href="https://i.taobao.com/my_itaobao/itao-tool/collect"
+                  href="#"
                   className="mytao-collectitem"
                 >
                   <span className="tb-ifont mytao-icon"></span>

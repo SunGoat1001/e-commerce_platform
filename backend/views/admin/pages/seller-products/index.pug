@@ -36,6 +36,7 @@ block main
                         th #
                         th Image
                         th Title
+                        th Brand
                         th Price
                         th Stock
                         th Category
@@ -51,6 +52,8 @@ block main
                                 img(src=product.thumbnail, alt=product.title, class="product-image" style="width: 60px; height: 60px; object-fit: cover;")
                             td 
                                 strong #{product.title}
+                            td 
+                                | #{product.brand || 'N/A'}
                             td 
                                 if product.discountPercentage > 0
                                     span.text-decoration-line-through.text-muted $#{product.price}
