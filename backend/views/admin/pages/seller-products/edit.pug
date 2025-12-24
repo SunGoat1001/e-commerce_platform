@@ -87,7 +87,10 @@ block main
                         p.text-muted No images uploaded
 
             .col-12
-                .form-group
+                div(
+                    class="form-group"
+                    upload-image-multiple
+                )
                     label(for="images") Add Images
                     input.form-control(type="file" name="images" id="images" accept="image/*" upload-image-input multiple)
                     .image-preview-container.d-flex.flex-wrap.mt-2

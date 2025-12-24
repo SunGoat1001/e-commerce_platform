@@ -34,8 +34,9 @@ block main
 
             .col-md-7
                 .card
-                    .card-header
+                    .card-header.d-flex.align-items-center.justify-content-between
                         h3.mb-0 #{product.title}
+                        span.badge.bg-secondary #{product.brand || 'N/A'}
                     .card-body
                         .row.mb-3
                             .col-md-6

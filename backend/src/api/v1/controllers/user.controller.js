@@ -658,7 +658,7 @@ module.exports.becomeSeller = async (req, res, next) => {
 
     // Validate and create the account
     const newAccount = new Account({
-      fullName: req.user.shopName,
+      fullName: user.shopName,
       email: user.email,
       password: user.password,
       roleId: shopRoleId,

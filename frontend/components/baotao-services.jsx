@@ -723,14 +723,13 @@ export default async function BaotaoService() {
                   data-spm="yingxiao"
                   style={{ backgroundColor: "rgb(247, 247, 247)" }}
                 >
-                  <a
+                  <div
                     className="business-entry-title-card-top"
-                    href="https://huodong.taobao.com/wow/a/act/tao/dailygroup/23509/24308/wupr?wh_pid=daily-554070&itemId=901610879296%2C881073172230%2C681264823490%2C657614813432&itemIds=901610879296%2C881073172230%2C681264823490%2C657614813432&custom_content_source=608.29877528"
-                    target="_blank"
+                    href="#"
                     data-spm="d1"
                   >
                     <div className="business-entry-title-card-top-image" />
-                  </a>
+                  </div>
                   <div className="business-entry-item-card-content-container">
                     <a
                       className="business-entry-item-card-content"
@@ -806,7 +805,7 @@ export default async function BaotaoService() {
                     </a>
                     <a
                       className="business-entry-item-card-content"
-                      href="https://huodong.taobao.com/wow/a/act/tao/dailygroup/23509/24308/wupr?wh_pid=daily-554070&itemId=901610879296%2C881073172230%2C681264823490%2C657614813432&itemIds=901610879296%2C881073172230%2C681264823490%2C657614813432&custom_content_source=608.29877528"
+                      href="#"
                       target="_blank"
                       data-spm="d1_4"
                       style={{ marginLeft: 8 }}

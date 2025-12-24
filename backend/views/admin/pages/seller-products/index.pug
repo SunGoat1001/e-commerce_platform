@@ -35,6 +35,7 @@ block main
                     tr
                         th #
                         th Image
+                        th Images
                         th Title
                         th Brand
                         th Price
@@ -50,6 +51,16 @@ block main
                             td #{index + 1 + (currentPage - 1) * limitItem}
                             td
                                 img(src=product.thumbnail, alt=product.title, class="product-image" style="width: 60px; height: 60px; object-fit: cover;")
+                            td
+                                - const gallery = product.images && product.images.length ? product.images.slice(0, 3) : [];
+                                if gallery.length
+                                    .d-flex.flex-wrap.align-items-center.gap-1
+                                        each image in gallery
+                                            img(src=image, alt=`${product.title} image`, class="product-image" style="width: 40px; height: 40px; object-fit: cover;")
+                                        if product.images.length > gallery.length
+                                            span.badge.bg-light.text-muted +#{product.images.length - gallery.length}
+                                else
+                                    span.text-muted N/A
                             td 
                                 strong #{product.title}
                             td 
