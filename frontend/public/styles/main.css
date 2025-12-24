@@ -131,7 +131,7 @@ table {
 }
 
 .clearfix {
-    zoom: 1
+    zoom: 1;
 }
 
 .clearfix:after,
@@ -171,11 +171,113 @@ body area {
     outline: none
 }
 
+body.disable-hover {
+    pointer-events: none
+}
+
 .J_Module {
     min-height: 0
 }
 
-.screen-outer {
+#J_SiteNavHome {
+    display: none
+}
+
+#J_Search {
+    width: 100% !important
+}
+
+.wrap-fixed {
+    padding-top: 99px
+}
+
+.wrap-fixed .top {
+    background: var(--tbpc-white-color, #fff);
+    left: 0;
+    margin: auto;
+    overflow: visible;
+    padding-bottom: 7px;
+    padding-top: 7px;
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 100%;
+    z-index: 1001
+}
+
+.wrap-fixed .head-wrap {
+    margin: 0 auto;
+    width: 1190px
+}
+
+.wrap-fixed .logo {
+    background-position: 0 -80px;
+    height: 42px;
+    margin-top: 0
+}
+
+.wrap-fixed .logo h1 {
+    display: none
+}
+
+.wrap-fixed .logo h2 {
+    display: block
+}
+
+.wrap-fixed .search-hd,
+.wrap-fixed .tbh-logo-right {
+    display: none
+}
+
+.wrap-fixed div[data-sg-type=hotWord] {
+    display: none !important
+}
+
+.wrap-fixed .search-ft {
+    display: none
+}
+
+.wrap-fixed .imgseach-pailitao-theme-queue {
+    top: 35px;
+    z-index: 700
+}
+
+.search-fixed .search-hd {
+    display: none
+}
+
+.search-fixed .imgseach-pailitao-theme-queue {
+    top: 35px;
+    z-index: 700
+}
+
+.cup {
+    margin: 0 auto
+}
+
+.hide,
+.tb-hide {
+    display: none
+}
+
+.tb-pass {
+    background-color: transparent
+}
+
+.tbh-tag:after {
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAMCAYAAABbayygAAAAMklEQVR42sWQsQkAQAgDs/+0bhAr8QtRUfCLgxCuCAEF7DAQ6fntjsSIjxt3P2bApAoFhBVhrbziPxwAAAAASUVORK5CYII=);
+    content: " ";
+    display: inline-block;
+    height: 12px;
+    margin-left: 2px;
+    width: 10px
+}
+
+.bottom,
+.screen-outer,
+.seat,
+.tbh-hotsale,
+.top-wrap {
     margin: 0 auto;
     position: relative;
     width: 100%
@@ -197,8 +299,149 @@ body area {
 }
 
 .col-right,
+.layer,
 .tbh-service {
     position: relative
+}
+
+.layer {
+    width: 100%
+}
+
+.seo {
+    margin: 0 auto;
+    padding-bottom: 12px;
+    padding-top: 12px
+}
+
+.fl {
+    display: inline;
+    float: left
+}
+
+.top {
+    margin-bottom: -1px;
+    padding-bottom: 8px;
+    padding-top: 16px
+}
+
+.logo {
+    width: 240px
+}
+
+.tbh-logo {
+    float: left
+}
+
+.tbh-logo,
+.tbh-logo-right {
+    margin-left: 8px;
+    margin-right: 8px;
+    width: 240px
+}
+
+.tbh-logo-right {
+    float: right;
+    height: 72px
+}
+
+.tbh-search {
+    margin-left: 272px;
+    margin-right: 272px
+}
+
+.search-decorations {
+    border-radius: 18px 18px 0 0;
+    margin: 0 auto;
+    position: relative;
+    width: 100%
+}
+
+.tbh-superbanner {
+    min-width: 1200px
+}
+
+.superbanner-inner {
+    min-width: 1200px;
+    width: 1552px
+}
+
+div.footer {
+    border-top: 2px solid #f40
+}
+
+div.footer .footer-ft {
+    display: block
+}
+
+.tb-footer .tb-footer-hd {
+    border-top: none !important
+}
+
+.tbh-business-entry {
+    height: 336px;
+    width: 1008px
+}
+
+.tb-toolkit {
+    width: 56px !important
+}
+
+.tb-toolkit .tb-toolkit-list {
+    padding: 8px 0
+}
+
+.tb-toolkit .tb-toolkit-list .im-entry {
+    height: 56px
+}
+
+.tb-toolkit .tb-toolkit-list .im-entry .im-num {
+    background-color: var(--tbpc-primary-theme-color, #ff5000);
+    font-family: AlibabaSans102v1TaoBao-Bold, sans-serif
+}
+
+.tb-toolkit .tb-toolkit-list .im-entry .im-bottom,
+.tb-toolkit .tb-toolkit-list .im-entry:first-child {
+    margin-top: 0
+}
+
+.tb-toolkit .tb-toolkit-list .toolkit-item {
+    border-radius: 0 0 0 18px;
+    height: 52px;
+    margin-top: 8px;
+    padding-top: 4px;
+    width: 56px
+}
+
+.tb-toolkit .tb-toolkit-list .toolkit-item .toolkit-cart-num {
+    background-color: var(--tbpc-primary-theme-color, #ff5000);
+    font-family: AlibabaSans102v1TaoBao-Bold, sans-serif
+}
+
+.tb-toolkit .tb-toolkit-list .toolkit-item-back {
+    bottom: -50px;
+    padding-bottom: 0
+}
+
+.toolkit-item.toolkit-item-link[data-name=plugin] {
+    border-top-left-radius: 20px;
+    margin-bottom: -18px
+}
+
+@media screen and (max-width: 1200px) {
+    body {
+        overflow-x: scroll
+    }
+
+    .site-nav .site-nav-bd {
+        width: 1200px !important
+    }
+
+    .tbh-superbanner {
+        overflow: hidden;
+        overflow-x: clip;
+        overflow-y: visible
+    }
 }
 
 :root {
