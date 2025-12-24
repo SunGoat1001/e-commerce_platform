@@ -10,6 +10,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
     "http://localhost:3001",
     "http://localhost:5173", // Vite
     "http://localhost:4200", // Angular
+    'https://e-commerce-platform-pi-one.vercel.app',
   ];
 
 const corsOptions = {
@@ -21,6 +22,7 @@ const corsOptions = {
 
     const isAllowed =
       allowedOrigins.includes(origin) ||
+      origin.includes('vercel.app') || // Allow all Vercel domains
       process.env.NODE_ENV === "development";
 
     if (isAllowed) {

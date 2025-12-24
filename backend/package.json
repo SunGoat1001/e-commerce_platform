@@ -2,8 +2,12 @@
   "name": "product-management",
   "version": "1.0.0",
   "main": "server.js",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
-    "start": "nodemon server.js",
+    "dev": "node server.js",
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start-no-debug": "nodemon server.js",
     "seed": "node seed/seed.js",
@@ -20,7 +24,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
-    "express": "^5.1.0",
+    "express": "^5.2.1",
     "express-flash": "^0.0.2",
     "express-session": "^1.18.1",
     "express-validator": "^7.3.1",
@@ -37,6 +41,8 @@
     "pug": "^3.0.3",
     "serve-favicon": "^2.5.1",
     "streamifier": "^0.1.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "stripe": "^20.1.0",
     "tinymce": "^7.9.1",
     "winston": "^3.18.3"

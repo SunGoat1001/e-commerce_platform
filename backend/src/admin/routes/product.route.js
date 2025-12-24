@@ -1,148 +1,211 @@
 const express = require("express");
 const router = express.Router();
-const multer = require("multer");
+const multer = require('multer');
+// const storageMulter = require('../../helper/storageMulter.js');
+const { uploadCloudinary } = require('../middlewares/uploadCloud.middleware.js');
 
-// Controllers
-const productController = require("../controllers/product.controller.js");
+const upload = multer();
 
-// Middlewares
-const {
-  uploadCloudinary,
-} = require("../middlewares/uploadCloud.middleware.js");
+const controller = require('../controllers/product.controller');
 
-// Validators
-const productValidator = require("../validators/product.validator.js");
-
-// Multer config (memory storage for Cloudinary)
-const upload = multer({
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB max
-  },
-  fileFilter: (req, file, cb) => {
-    // Accept images only
-    if (!file.mimetype.startsWith("image/")) {
-      return cb(new Error("Only image files are allowed!"), false);
-    }
-    cb(null, true);
-  },
-});
+const validate = require('../validators/product.validator');
 
 /**
- * @route   GET /admin/products
- * @desc    Display all products page
- * @access  Private (products_view permission)
+ * @swagger
+ * /admin/products:
+ *   get:
+ *     summary: Get all products (admin)
+ *     tags:
+ *       - Admin Products
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of products
  */
-router.get("/", productController.getAllProducts);
+router.get("/", controller.index);
 
 /**
- * @route   GET /admin/products/create
- * @desc    Display create product page
- * @access  Private (products_create permission)
+ * @swagger
+ * /admin/products/change-status/{status}/{id}:
+ *   patch:
+ *     summary: Change product status
+ *     tags:
+ *       - Admin Products
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: status
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Status changed
  */
-router.get("/create", productController.renderCreate);
+router.patch("/change-status/:status/:id", controller.changeStatus);
 
 /**
- * @route   POST /admin/products/create
- * @desc    Create new product
- * @access  Private (products_create permission)
+ * @swagger
+ * /admin/products/change-multi:
+ *   patch:
+ *     summary: Change multiple products status
+ *     tags:
+ *       - Admin Products
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Statuses changed
  */
-router.post(
-  "/create",
-  upload.single("thumbnail"),
-  uploadCloudinary("products/thumbnails"),
-  productValidator.createProduct,
-  productController.createProduct
+router.patch("/change-multi/", controller.changeMulti);
+
+/**
+ * @swagger
+ * /admin/products/delete/{id}:
+ *   delete:
+ *     summary: Delete product
+ *     tags:
+ *       - Admin Products
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Product deleted
+ */
+router.delete("/delete/:id", controller.deleteItem);
+
+/**
+ * @swagger
+ * /admin/products/create:
+ *   get:
+ *     summary: Get product creation form
+ *     tags:
+ *       - Admin Products
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Creation form
+ *   post:
+ *     summary: Create new product
+ *     tags:
+ *       - Admin Products
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               thumbnail:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Product created
+ */
+router.get("/create", controller.create);
+
+// Multer
+router.post('/create',
+    upload.single('thumbnail'),
+    uploadCloudinary('products/thumbnails'), 
+    validate.createProduct,
+    controller.createProduct
 );
 
 /**
- * @route   GET /admin/products/detail/:id
- * @desc    Display product detail page
- * @access  Private (products_view permission)
+ * @swagger
+ * /admin/products/edit/{id}:
+ *   get:
+ *     summary: Get product edit form
+ *     tags:
+ *       - Admin Products
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Edit form
+ *   patch:
+ *     summary: Update product
+ *     tags:
+ *       - Admin Products
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Product updated
  */
-router.get("/detail/:id", productController.getProductById);
+router.get("/edit/:id", controller.edit);
 
-/**
- * @route   GET /admin/products/edit/:id
- * @desc    Display edit product page
- * @access  Private (products_edit permission)
- */
-router.get("/edit/:id", productController.renderEdit);
-
-/**
- * @route   PATCH /admin/products/edit/:id
- * @desc    Update product
- * @access  Private (products_edit permission)
- */
-router.patch(
-  "/edit/:id",
-  upload.single("thumbnail"),
-  uploadCloudinary("products/thumbnails"),
-  productValidator.updateProduct,
-  productController.patchProduct
+router.patch("/edit/:id",
+    upload.single('thumbnail'),
+    uploadCloudinary('products/thumbnails'),
+    validate.createProduct,
+    controller.editPatch
 );
 
 /**
- * @route   PATCH /admin/products/change-status/:id
- * @desc    Change product status (active/inactive)
- * @access  Private (products_edit permission)
+ * @swagger
+ * /admin/products/detail/{id}:
+ *   get:
+ *     summary: Get product details
+ *     tags:
+ *       - Admin Products
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Product details
  */
-router.patch(
-  "/change-status/:id",
-  productValidator.changeStatus,
-  productController.changeStatus
+router.get("/detail/:id",
+    controller.detail,
 );
 
-/**
- * @route   PATCH /admin/products/change-multi
- * @desc    Bulk actions (change status, delete multiple products)
- * @access  Private (products_edit permission)
- */
-router.patch(
-  "/change-multi",
-  productValidator.bulkAction,
-  productController.bulkAction
-);
-
-/**
- * @route   PATCH /admin/products/change-position/:id
- * @desc    Change product position
- * @access  Private (products_edit permission)
- */
-router.patch(
-  "/change-position/:id",
-  productValidator.changePosition,
-  productController.changePosition
-);
-
-/**
- * @route   PATCH /admin/products/toggle-feature/:id
- * @desc    Toggle product featured status
- * @access  Private (products_edit permission)
- */
-router.patch("/toggle-feature/:id", productController.toggleFeature);
-
-/**
- * @route   DELETE /admin/products/delete/:id
- * @desc    Soft delete product
- * @access  Private (products_delete permission)
- */
-router.delete("/delete/:id", productController.deleteProduct);
-
-/**
- * @route   PATCH /admin/products/restore/:id
- * @desc    Restore deleted product
- * @access  Private (products_edit permission)
- */
-router.patch("/restore/:id", productController.restoreProduct);
-
-/**
- * @route   DELETE /admin/products/permanent-delete/:id
- * @desc    Permanently delete product
- * @access  Private (products_delete permission + super admin)
- */
-router.delete(
-  "/permanent-delete/:id",
-  productController.permanentDeleteProduct
-);
 
 module.exports = router;

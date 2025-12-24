@@ -13,6 +13,8 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import ProductGallery from "@/components/product-gallery";
+// Import the ReviewForm
+import ReviewForm from "@/components/review-form"; 
 
 async function getProduct(slug) {
   try {
@@ -54,24 +56,6 @@ export default async function ProductDetail({ params }) {
       <Header />
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
-        {/* <nav className="mb-8 text-sm">
-          <ol className="flex items-center space-x-2">
-            <li>
-              <Link href="/" className="text-gray-500 hover:text-gray-700">
-                Home
-              </Link>
-            </li>
-            <li className="text-gray-400">/</li>
-            <li>
-              <span className="text-gray-900">Products</span>
-            </li>
-            <li className="text-gray-400">/</li>
-            <li className="max-w-xs truncate font-medium text-gray-900">
-              {product.title}
-            </li>
-          </ol>
-        </nav> */}
-
         <Breadcrumb className="mb-8">
           <BreadcrumbList className="">
             <BreadcrumbItem>
@@ -271,30 +255,60 @@ export default async function ProductDetail({ params }) {
           <h2 className="mb-8 text-2xl font-bold text-gray-900">
             Customer Reviews
           </h2>
-          {product.reviews && product.reviews.length > 0 ? (
-            <div className="space-y-6">
-              {product.reviews.map((review) => (
-                <div key={review._id} className="border-b border-gray-200 pb-6 last:border-b-0">
-                  <div className="mb-2 flex items-start justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900">{review.reviewerName}</p>
-                      <p className="text-sm text-gray-500">{new Date(review.date).toLocaleDateString()}</p>
+          
+          <div className="grid gap-10 lg:grid-cols-12">
+            {/* Reviews List (Left Column) */}
+            <div className="lg:col-span-7">
+              {product.reviews && product.reviews.length > 0 ? (
+                <div className="space-y-6">
+                  {product.reviews.map((review) => (
+                    <div
+                      key={review._id}
+                      className="border-b border-gray-200 pb-6 last:border-b-0"
+                    >
+                      <div className="mb-2 flex items-start justify-between">
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {review.reviewerName}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {new Date(review.date).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <span
+                              key={i}
+                              className={
+                                i < review.rating
+                                  ? "text-lg text-yellow-400"
+                                  : "text-lg text-gray-300"
+                              }
+                            >
+                              ★
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-gray-700">{review.comment}</p>
                     </div>
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <span key={i} className={i < review.rating ? "text-lg text-yellow-400" : "text-lg text-gray-300"}>
-                          ★
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-gray-700">{review.comment}</p>
+                  ))}
                 </div>
-              ))}
+              ) : (
+                <p className="text-gray-600">
+                  No reviews for this product yet. Be the first to share your
+                  thoughts!
+                </p>
+              )}
             </div>
-          ) : (
-            <p className="text-gray-600">No reviews for this product yet. Be the first to share your thoughts!</p>
-          )}
+
+            {/* Review Form (Right Column) */}
+            <div className="lg:col-span-5">
+               <div className="sticky top-24">
+                  <ReviewForm productSlug={product.slug} />
+               </div>
+            </div>
+          </div>
         </div>
 
         {/* Related Products Section */}
