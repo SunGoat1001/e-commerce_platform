@@ -15,11 +15,11 @@
                         i.menu-icon.bi.bi-box-seam
                         |  Danh mục sản phẩm
 
-            //- if role.permissions.includes('products_view') 
-            //-     li
-            //-         a(href=`/${prefixAdmin}/seller/products`)
-            //-             i.menu-icon.bi.bi-box-seam
-            //-             |  Quản lý sản phẩm
+            if role.permissions.includes('products_view') 
+                li
+                    a(href=`/${prefixAdmin}/seller/products`)
+                        i.menu-icon.bi.bi-box-seam
+                        |  Quản lý sản phẩm
 
             if role.permissions.includes('categories_view') 
                 li
