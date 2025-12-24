@@ -1,6 +1,4 @@
 // src/api/v1/routes/client/index.js
-console.log("📌 Client routes loaded!");
-
 const express = require("express");
 const router = express.Router();
 

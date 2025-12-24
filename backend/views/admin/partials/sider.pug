@@ -3,7 +3,6 @@
         ul
             //- Main
             if role.permissions.includes('dashboard_view') 
-                .section-title Main
                 li
                     a(href=`/${prefixAdmin}/dashboard`)
                         i.menu-icon.bi.bi-speedometer2
@@ -11,7 +10,6 @@
 
             //- Management
             if role.permissions.includes('products_view') 
-                .section-title Management
                 li
                     a(href=`/${prefixAdmin}/products`)
                         i.menu-icon.bi.bi-box-seam
@@ -49,7 +47,6 @@
 
             //- Settings
             if role.permissions.includes('settings_view') 
-                .section-title Settings
                 li
                     a(href=`/${prefixAdmin}/settings/general`)
                         i.menu-icon.bi.bi-gear

@@ -18,7 +18,7 @@ const productSchema = new mongoose.Schema(
     {
         title: { type: String, required: true },
         description: { type: String },
-        product_category_id: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductCategory', default: '' },
+        product_category_id: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductCategory', default: null },
         category: { type: String },
         price: { type: Number, required: true },
         discountPercentage: { type: Number },
