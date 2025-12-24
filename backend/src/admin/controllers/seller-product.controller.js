@@ -234,8 +234,8 @@ const patchProduct = async (req, res) => {
     const removeImages = Array.isArray(req.body.removeImages)
       ? req.body.removeImages
       : req.body.removeImages
-      ? [req.body.removeImages]
-      : [];
+        ? [req.body.removeImages]
+        : [];
 
     // Normalize new images coming from Cloudinary middleware
     let newImages = [];
