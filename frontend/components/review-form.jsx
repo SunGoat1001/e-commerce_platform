@@ -85,7 +85,7 @@ export default function ReviewForm({ productSlug, onReviewAdded }) {
     return (
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-6">
             <h3 className="mb-4 text-lg font-semibold text-gray-900">
-                Share Your Review
+                Share Your Feedback
             </h3>
 
             {message.text && (
@@ -138,44 +138,10 @@ export default function ReviewForm({ productSlug, onReviewAdded }) {
                     </div>
                 </div>
 
-                {/* Name */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                        Your Name *
-                    </label>
-                    <input
-                        type="text"
-                        name="reviewerName"
-                        value={formData.reviewerName}
-                        onChange={handleChange}
-                        required
-                        minLength={2}
-                        maxLength={100}
-                        placeholder="Enter your name"
-                        className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-[#ff5000] focus:outline-none"
-                    />
-                </div>
-
-                {/* Email */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                        Your Email *
-                    </label>
-                    <input
-                        type="email"
-                        name="reviewerEmail"
-                        value={formData.reviewerEmail}
-                        onChange={handleChange}
-                        required
-                        placeholder="Enter your email"
-                        className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-[#ff5000] focus:outline-none"
-                    />
-                </div>
-
                 {/* Comment */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700">
-                        Your Review
+                        Your feedback
                     </label>
                     <textarea
                         name="comment"

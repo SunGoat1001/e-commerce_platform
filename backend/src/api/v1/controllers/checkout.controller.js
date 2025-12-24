@@ -424,7 +424,7 @@ module.exports.order = async (req, res, next) => {
     if (paymentMethod === "cod") {
       await decrementProductStock(productsForOrder);
       newOrder.paidAt = new Date();
-      newOrder.status = "delivered"
+      // newOrder.status = "delivered"
       await newOrder.save();
     }
 
@@ -447,6 +447,8 @@ module.exports.order = async (req, res, next) => {
       responseData.redirect = "/checkout/success/" + newOrder._id;
       responseData.message = "Order placed successfully (COD).";
     }
+
+    
 
     return ResponseFormatter.success(res, responseData, responseData.message);
   } catch (err) {

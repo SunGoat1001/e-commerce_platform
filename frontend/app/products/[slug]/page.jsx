@@ -15,9 +15,12 @@ import {
 import ProductGallery from "@/components/product-gallery";
 // Import the ReviewForm
 import ReviewForm from "@/components/review-form"; 
+import { cookies } from "next/headers";
 
 async function getProduct(slug) {
   try {
+      const userId = (await cookies()).get("userId");
+
     const res = await fetch(`${API_URL}/products/${slug}`, {
       cache: "no-store",
     });
