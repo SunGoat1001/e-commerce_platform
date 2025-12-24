@@ -99,13 +99,6 @@ export default async function BaotaoService() {
                   >
                     Men&apos;s Wear
                   </a>
-                  <span className="service-slash--BcpvY80i tb-ifont"></span>
-                  <a
-                    className="cate-content-href--HI8wwRts"
-                    href="/categories/accessories"
-                  >
-                    Accessories
-                  </a>
                 </div>
               </li>
               <li className="J_Cat cate--EZsNFK5T">
@@ -148,6 +141,17 @@ export default async function BaotaoService() {
                     href="/categories/automotive"
                   >
                     Automotive
+                  </a>
+                </div>
+              </li>
+              <li className="J_Cat cate--EZsNFK5T">
+                <div className="first-cate-container--odleAL9p">
+                  <i className="icon-cate--xP_I0ts1 tb-ifont"></i>
+                  <a
+                    className="cate-content-href--HI8wwRts"
+                    href="/categories/accessories"
+                  >
+                    Accessories
                   </a>
                 </div>
               </li>

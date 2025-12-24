@@ -121,13 +121,14 @@ block main
                                                     i.bi.bi-eye-fill.text-secondary
 
                                                 if order.status != 'delivered' && order.status != 'cancelled'
-                                                    form(method="POST" action=`/${prefixAdmin}/orders/change-status/${order.status === 'pending' ? 'processing' : order.status === 'processing' ? 'shipped' : 'delivered'}/${order._id}`)
-                                                        button.btn.btn-light.rounded-circle.shadow-sm.d-flex.align-items-center.justify-content-center.text-success(
-                                                            type="submit" 
-                                                            title="Cập nhật trạng thái kế tiếp"
-                                                            style="width: 32px; height: 32px;"
-                                                        )
-                                                            i.bi.bi-arrow-right
+                                                    if order.status === 'pending' || order.status === 'processing'
+                                                        form(method="POST" action=`/${prefixAdmin}/orders/change-status/${order.status === 'pending' ? 'processing' : 'shipped'}/${order._id}`)
+                                                            button.btn.btn-light.rounded-circle.shadow-sm.d-flex.align-items-center.justify-content-center.text-success(
+                                                                type="submit" 
+                                                                title="Cập nhật trạng thái kế tiếp"
+                                                                style="width: 32px; height: 32px;"
+                                                            )
+                                                                i.bi.bi-arrow-right
 
                                                 a.btn.btn-light.rounded-circle.shadow-sm.d-flex.align-items-center.justify-content-center.text-danger(
                                                     href=`/${prefixAdmin}/orders/delete/${order._id}` 

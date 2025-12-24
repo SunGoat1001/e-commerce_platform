@@ -6,6 +6,7 @@ const systemConfig = require("../../../config/system");
 const filterStatusHelper = require("../../utils/filterStatus");
 const searchHelper = require("../../utils/search");
 const paginationHelper = require("../../utils/pagination");
+const { sendEmail } = require("../../utils/sendMail");
 
 // [GET] /orders
 module.exports.index = async (req, res) => {
@@ -129,6 +130,48 @@ module.exports.changeStatus = async (req, res) => {
             return res.status(404).json({
                 error: "Đơn hàng không tồn tại"
             });
+        }
+
+        // Send email only when status changes to 'shipped'
+        if (status === 'shipped') {
+            try {
+                const orderFull = await Order.findById(id)
+                    .populate('user_id', 'email')
+                    .populate('products.product_id', 'title');
+
+                const customerEmail = orderFull?.user_id?.email;
+                const customerName = orderFull?.userInfo?.fullName || 'Quý khách';
+                const itemsHtml = (orderFull?.products || [])
+                    .map(item => {
+                        const name = item.product_id?.title || 'Sản phẩm';
+                        return `<li>${name} — SL: ${item.quantity}</li>`;
+                    })
+                    .join('');
+
+                const subject = `Xác nhận: Đơn hàng đã được gửi — #${orderFull._id.toString().slice(-8).toUpperCase()}`;
+                const html = `
+                    <div style="font-family:Arial,sans-serif;color:#222;">
+                        <h2>Đơn hàng đã được gửi</h2>
+                        <p>Xin chào ${customerName},</p>
+                        <p>Đơn hàng của bạn đã được xác nhận gửi từ cửa hàng.</p>
+                        <p><strong>Mã đơn hàng:</strong> ${orderFull._id}</p>
+                        <h3>Sản phẩm đã mua</h3>
+                        <ul>${itemsHtml}</ul>
+                        <p>Cảm ơn bạn đã mua sắm cùng chúng tôi!</p>
+                    </div>
+                `;
+
+                if (customerEmail) {
+                    const ok = await sendEmail(customerEmail, subject, html);
+                    if (!ok) {
+                        console.error(`[MAIL] Failed to send shipped email for order ${id} to ${customerEmail}`);
+                    }
+                } else {
+                    console.warn(`[MAIL] No customer email found for order ${id}`);
+                }
+            } catch (mailErr) {
+                console.error('Error while sending shipped confirmation email:', mailErr);
+            }
         }
 
         // Redirect to order detail page instead of "back"

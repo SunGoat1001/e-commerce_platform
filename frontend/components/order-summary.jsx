@@ -32,7 +32,7 @@ export default function OrderSummary({ onCheckout, isSubmitting = false }) {
     (acc, item) => acc + Number(item.itemTotal || item.price * item.quantity),
     0,
   );
-  const shipping = 15.0;
+  const shipping = 0;
   const tax = subtotal * 0.08;
   const total = subtotal + shipping + tax - discount;
 

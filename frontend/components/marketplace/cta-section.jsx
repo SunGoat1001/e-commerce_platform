@@ -148,7 +148,7 @@ export default function CTASection() {
 
           <a
             ref={button2Ref}
-            href="/products"
+            href="/"
             className="group rounded-xl border-2 border-white bg-transparent px-10 py-5 text-lg font-bold text-white"
           >
             <span className="flex items-center gap-2">

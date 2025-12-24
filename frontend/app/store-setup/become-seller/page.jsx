@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { API_URL } from "@/lib/constants";
+import { API_URL, ADMIN_URL } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -13,7 +13,6 @@ export default function BecomeSellerPage() {
   const [authState, setAuthState] = useState(null); // null | 'logged-out' | 'already-seller' | 'can-register'
   const [userInfo, setUserInfo] = useState(null);
   const [shopName, setShopName] = useState("");
-  const [visaNumber, setVisaNumber] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -61,12 +60,6 @@ export default function BecomeSellerPage() {
     setError("");
     setSubmitting(true);
 
-    if (!isValidVisaNumber(visaNumber)) {
-      setError("Visa card number must contain exactly 16 digits.");
-      setSubmitting(false);
-      return;
-    }
-
     try {
       const response = await fetch(`${API_URL}/user/become-seller`, {
         method: "POST",
@@ -74,20 +67,19 @@ export default function BecomeSellerPage() {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({ visaNumber, shopName }),
+        body: JSON.stringify({ shopName }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        window.location.href = data.data.onboardingUrl;
-        // setSuccess(true);
-        // // Optionally redirect after a delay
-        // setTimeout(() => {
-        //   router.push("/products");
-        // }, 2000);
+        setSuccess(true);
+        // Optionally redirect after a delay
+        setTimeout(() => {
+          window.location.href = `${ADMIN_URL}/dashboard`;
+        }, 2000);
       } else {
-        setError(data.error.message || "Đã xảy ra lỗi. Vui lòng thử lại.");
+        setError(data.message || "Đã xảy ra lỗi. Vui lòng thử lại.");
       }
     } catch (err) {
       console.error("Error becoming seller:", err);
@@ -105,26 +97,6 @@ export default function BecomeSellerPage() {
           <p className="text-slate-600">Đang tải...</p>
         </div>
       </div>
-    );
-  }
-
-  function formatVisaNumber(value) {
-    // Chỉ giữ số
-    const digits = value.replace(/\D/g, "");
-
-    // Giới hạn 16 số
-    const limited = digits.slice(0, 16);
-
-    // Chia thành nhóm 4 số
-    const parts = limited.match(/.{1,4}/g);
-
-    return parts ? parts.join(" ") : "";
-  }
-
-  function isValidVisaNumber(value) {
-    return (
-      value.replace(/\s/g, "").length === 16 ||
-      value.replace(/\s/g, "").length === 12
     );
   }
 
@@ -224,7 +196,9 @@ export default function BecomeSellerPage() {
                   : "N/A"}
               </p>
               <Button
-                onClick={() => router.push("/products")}
+                onClick={() =>
+                  (window.location.href = `${ADMIN_URL}/dashboard`)
+                }
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >
                 Browse Marketplace
@@ -283,30 +257,6 @@ export default function BecomeSellerPage() {
                   </p>
                 </div>
 
-                <div className="mb-6">
-                  <label
-                    htmlFor="visaNumber"
-                    className="mb-2 block text-sm font-medium text-slate-700"
-                  >
-                    Visa Card Number <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    type="text"
-                    id="visaNumber"
-                    value={visaNumber}
-                    onChange={(e) =>
-                      setVisaNumber(formatVisaNumber(e.target.value))
-                    }
-                    placeholder="4242 4242 4242 4242"
-                    required
-                    disabled={submitting}
-                    className="w-full"
-                  />
-                  <p className="mt-2 text-sm text-slate-500">
-                    Test card only. No real payment will be made.
-                  </p>
-                </div>
-
                 {error && (
                   <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
                     <p className="text-sm text-red-600">{error}</p>
@@ -315,12 +265,8 @@ export default function BecomeSellerPage() {
 
                 <Button
                   type="submit"
-                  disabled={
-                    submitting ||
-                    !shopName.trim() ||
-                    !isValidVisaNumber(visaNumber)
-                  }
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600"
+                  disabled={submitting || !shopName.trim()}
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50"
                 >
                   {submitting ? (
                     <>
@@ -388,7 +334,7 @@ export default function BecomeSellerPage() {
               </p>
               <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
                 <p className="text-sm text-blue-800">
-                  Redirecting you to the marketplace...
+                  Redirecting you to the store...
                 </p>
               </div>
               <Button

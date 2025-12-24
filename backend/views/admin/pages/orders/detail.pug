@@ -160,11 +160,12 @@ block main
                                                 i.bi.bi-truck.me-2
                                                 | Xác nhận Gửi hàng
                                     
-                                    if order.status === 'shipped'
-                                        form(method="POST" action=`/${prefixAdmin}/orders/change-status/delivered/${order._id}`)
-                                            button.btn.btn-success.w-100.py-2.rounded-pill(type="submit")
-                                                i.bi.bi-check-lg.me-2
-                                                | Xác nhận Đã giao
+                                    //- Khi đã gửi hàng, không hiển thị nút xác nhận đã giao theo yêu cầu
+                                    //- if order.status === 'shipped'
+                                    //-     form(method="POST" action=`/${prefixAdmin}/orders/change-status/delivered/${order._id}`)
+                                    //-         button.btn.btn-success.w-100.py-2.rounded-pill(type="submit")
+                                    //-             i.bi.bi-check-lg.me-2
+                                    //-             | Xác nhận Đã giao
                                     
                                     hr.text-muted.my-2
 

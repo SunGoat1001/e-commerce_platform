@@ -117,7 +117,7 @@ export default function HeroSection() {
           className="flex flex-col items-center justify-center gap-4 sm:flex-row"
         >
           <a
-            href="/products"
+            href="/"
             className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
           >
             <span className="relative z-10">Explore Marketplace</span>

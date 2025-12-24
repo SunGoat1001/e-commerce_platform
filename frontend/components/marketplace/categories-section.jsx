@@ -181,7 +181,7 @@ export default function CategoriesSection() {
 
         <div className="text-center mt-12">
           <a
-            href="/products"
+            href="/"
             className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
           >
             Browse All Categories
