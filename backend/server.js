@@ -9,6 +9,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
+const { Server } = require('socket.io');
+const mongoose = require('mongoose');
 
 // THƯ VIỆN BỔ SUNG CHO MVC & UTILITIES
 const flash = require('express-flash');
@@ -20,15 +22,27 @@ const favicon = require('serve-favicon');
 // === [FIX VERCEL] THAY ĐỔI CẤU HÌNH MULTER ===
 // Thay vì lưu vào disk (dest: 'uploads/'), ta lưu vào Memory (RAM)
 // để tránh lỗi EROFS: read-only file system trên Vercel.
-const upload = multer({ storage: multer.memoryStorage() }); 
+const upload = multer({ storage: multer.memoryStorage() });
 
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 
 // Import logger tùy chỉnh
 const logger = require('./src/shared/logger.js');
+const ChatMessage = require('./src/models/chatMessage.model.js');
+const User = require('./src/models/user.model.js');
+const { buildConversationId } = require('./src/api/v1/controllers/chat.controller.js');
 
 require('dotenv').config();
+
+const parseCookies = (cookieHeader = '') => {
+    return cookieHeader.split(';').reduce((acc, pair) => {
+        const [rawKey, ...rest] = pair.trim().split('=');
+        if (!rawKey) return acc;
+        acc[decodeURIComponent(rawKey)] = decodeURIComponent(rest.join('=') || '');
+        return acc;
+    }, {});
+};
 
 // Import configs
 const database = require('./config/database.js');
@@ -46,6 +60,8 @@ const { errorHandler, notFound } = require('./src/api/v1/middlewares/errorHandle
 database.connect();
 
 const app = express();
+
+const socketCorsOrigin = typeof corsConfig.origin === 'function' ? '*' : corsConfig.origin;
 
 const port = process.env.PORT || 3000;
 
@@ -156,7 +172,7 @@ app.get('/health', (req, res) => {
 app.use('/api/v1', apiV1Routes);
 
 // ADMIN MVC
-adminRoutes(app); 
+adminRoutes(app);
 
 
 // ======================
@@ -178,6 +194,109 @@ const server = app.listen(port, () => {
     logger.info(`👨‍💼 Admin Panel: http://localhost:${port}/${systemConfig.prefixAdmin}`);
     logger.info(`💚 Health Check: http://localhost:${port}/health`);
     logger.info('═══════════════════════════════════════');
+});
+
+// ======================
+// SOCKET.IO (REAL-TIME CHAT)
+// ======================
+const io = new Server(server, {
+    cors: {
+        origin: socketCorsOrigin || '*',
+        credentials: true,
+    },
+});
+
+io.use(async (socket, next) => {
+    try {
+        const tokenFromAuth = socket.handshake.auth?.token;
+        const cookies = parseCookies(socket.handshake.headers?.cookie || '');
+        const token = tokenFromAuth || cookies.tokenUser;
+
+        if (!token) {
+            return next(new Error('Unauthorized'));
+        }
+
+        const user = await User.findOne({
+            tokenUser: token,
+            deleted: false,
+            status: 'active',
+        })
+            .select('_id fullName avatar shopName')
+            .lean();
+
+        if (!user) {
+            return next(new Error('Unauthorized'));
+        }
+
+        socket.data.user = {
+            id: user._id.toString(),
+            fullName: user.fullName,
+            avatar: user.avatar,
+            shopName: user.shopName,
+        };
+
+        socket.join(socket.data.user.id);
+        return next();
+    } catch (error) {
+        console.error('❌ Socket auth error:', error);
+        return next(new Error('Unauthorized'));
+    }
+});
+
+io.on('connection', (socket) => {
+    socket.on('sendMessage', async (payload = {}, ack) => {
+        try {
+            const { receiverId, content } = payload;
+
+            if (!receiverId || typeof content !== 'string') {
+                return ack?.({ ok: false, message: 'receiverId and content are required' });
+            }
+
+            if (!mongoose.Types.ObjectId.isValid(receiverId)) {
+                return ack?.({ ok: false, message: 'Invalid receiver' });
+            }
+
+            const senderId = socket.data.user?.id;
+            const trimmedContent = content.trim();
+
+            if (!senderId || !trimmedContent) {
+                return ack?.({ ok: false, message: 'Invalid message payload' });
+            }
+
+            const receiverExists = await User.exists({ _id: receiverId, deleted: false });
+            if (!receiverExists) {
+                return ack?.({ ok: false, message: 'Receiver not found' });
+            }
+
+            const conversationId = buildConversationId(senderId, receiverId);
+
+            const saved = await ChatMessage.create({
+                conversationId,
+                sender: senderId,
+                receiver: receiverId,
+                content: trimmedContent,
+                timestamp: new Date(),
+            });
+
+            const messagePayload = {
+                id: saved._id,
+                conversationId,
+                sender: saved.sender,
+                receiver: saved.receiver,
+                content: saved.content,
+                timestamp: saved.timestamp,
+                isRead: saved.isRead,
+            };
+
+            io.to(receiverId).emit('newMessage', messagePayload);
+            io.to(senderId).emit('newMessage', messagePayload);
+
+            ack?.({ ok: true, message: messagePayload });
+        } catch (error) {
+            console.error('❌ sendMessage error:', error);
+            ack?.({ ok: false, message: 'Failed to send message' });
+        }
+    });
 });
 
 // GRACEFUL SHUTDOWN

@@ -90,11 +90,11 @@ const resolveSellerByAccount = async (accountId, cache) => {
 
   const result = sellerUser
     ? {
-        id: sellerUser._id.toString(),
-        name: sellerUser.fullName,
-        avatar: sellerUser.avatar || null,
-        shopName: sellerUser.shopName || account.fullName || null,
-      }
+      id: sellerUser._id.toString(),
+      name: sellerUser.fullName,
+      avatar: sellerUser.avatar || null,
+      shopName: sellerUser.shopName || account.fullName || null,
+    }
     : null;
 
   cache.set(cacheKey, result);

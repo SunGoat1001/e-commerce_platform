@@ -100,14 +100,25 @@ const UserActions = () => (
   </div>
 );
 
+const MessagesLink = () => (
+  <Link
+    href="/chat"
+    className="hidden items-center justify-center rounded-xl border border-orange-100 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:border-orange-200 hover:bg-orange-50 hover:text-[#ff5000] md:inline-flex"
+  >
+    Messages
+  </Link>
+);
+
 export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white py-3 md:py-4 lg:py-5">
       <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-4 px-4 md:flex-nowrap md:gap-6 md:px-6 lg:gap-8 lg:px-8 xl:max-w-[1600px]">
         <Logo />
         <SearchBar />
-        {/* <UserActions /> */}
-        <CartIcon />
+        <div className="flex items-center gap-3 md:gap-4 lg:gap-6">
+          <MessagesLink />
+          <CartIcon />
+        </div>
       </div>
     </header>
   );

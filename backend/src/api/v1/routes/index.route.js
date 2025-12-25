@@ -29,5 +29,6 @@ router.use("/search", require("./search.route"));
 router.use("/cart", cartMiddleware.cartId, require("./cart.route"));
 router.use("/checkout", require("./checkout.route")); // Auth trong file route riêng
 router.use("/user", require("./user.route"));
+router.use("/chat", require("./chat.route"));
 
 module.exports = router;
