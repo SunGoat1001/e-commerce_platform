@@ -14,13 +14,11 @@ import {
 } from "@/components/ui/breadcrumb";
 import ProductGallery from "@/components/product-gallery";
 // Import the ReviewForm
-import ReviewForm from "@/components/review-form"; 
+import ReviewForm from "@/components/review-form";
 import { cookies } from "next/headers";
 
 async function getProduct(slug) {
   try {
-      const userId = (await cookies()).get("userId");
-
     const res = await fetch(`${API_URL}/products/${slug}`, {
       cache: "no-store",
     });
@@ -42,6 +40,34 @@ async function getProduct(slug) {
   }
 }
 
+async function getUserInfo() {
+  try {
+    const cookieStore = await cookies();
+    const tokenUser = cookieStore.get("tokenUser")?.value;
+
+    if (!tokenUser) {
+      return null;
+    }
+
+    const res = await fetch(`${API_URL}/user/info`, {
+      headers: {
+        Cookie: `tokenUser=${tokenUser}`,
+      },
+      cache: "no-store",
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      return data.data.user;
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error fetching user info:", error);
+    return null;
+  }
+}
+
 export default async function ProductDetail({ params }) {
   const { slug } = await params;
   const product = await getProduct(slug);
@@ -49,6 +75,9 @@ export default async function ProductDetail({ params }) {
   if (!product) {
     notFound();
   }
+
+  const user = await getUserInfo();
+  const canReview = user?.productsWaitingReview?.includes(product._id) || false;
 
   const displayPrice = product.priceNew || product.price;
   const originalPrice = product.price;
@@ -258,7 +287,7 @@ export default async function ProductDetail({ params }) {
           <h2 className="mb-8 text-2xl font-bold text-gray-900">
             Customer Reviews
           </h2>
-          
+
           <div className="grid gap-10 lg:grid-cols-12">
             {/* Reviews List (Left Column) */}
             <div className="lg:col-span-7">
@@ -307,9 +336,17 @@ export default async function ProductDetail({ params }) {
 
             {/* Review Form (Right Column) */}
             <div className="lg:col-span-5">
-               <div className="sticky top-24">
+              {canReview ? (
+                <div className="sticky top-24">
                   <ReviewForm productSlug={product.slug} />
-               </div>
+                </div>
+              ) : (
+                <div className="sticky top-24 rounded-lg border border-gray-200 bg-gray-50 p-6">
+                  <p className="text-center text-gray-600">
+                    You can only review products you've purchased.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
