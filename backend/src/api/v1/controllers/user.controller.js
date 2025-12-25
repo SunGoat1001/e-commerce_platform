@@ -121,6 +121,7 @@ module.exports.loginPost = async (req, res, next) => {
       res.cookie("cartId", cart._id.toString(), {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
     } else if (tempCartId) {
       // Nếu người dùng chưa có giỏ hàng nhưng có giỏ hàng tạm thời (cookie)
@@ -133,6 +134,7 @@ module.exports.loginPost = async (req, res, next) => {
       res.cookie("cartId", newCart._id.toString(), {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 day
       });
     }
 

@@ -14,6 +14,7 @@ export default function LogoutButton({ className = "" }) {
       // Remove tokenUser and cartId cookies (client-side, fallback)
       document.cookie = "tokenUser=; Max-Age=0; path=/;";
       document.cookie = "cartId=; Max-Age=0; path=/;";
+      document.cookie = "userId=; Max-Age=0; path=/;";
       // Reload or redirect to home/login
       window.location.reload();
     } catch (error) {
