@@ -223,13 +223,13 @@ export default function BoughtOrdersContent() {
                         <MapPin className="mt-1 size-5 flex-shrink-0 text-blue-600" />
                         <div className="flex-1">
                           <p className="font-semibold text-gray-900">
-                            {order?.shippingInfo?.fullName || "Unknown"}
+                            {order?.userInfo?.fullName || "Unknown"}
                           </p>
                           <p className="text-sm text-gray-700">
-                            {order?.shippingInfo?.address || "No address provided"}
+                            {order?.userInfo?.address || "No address provided"}
                           </p>
                           <p className="text-sm text-gray-600">
-                            {order?.shippingInfo?.phone || "No phone"}
+                            {order?.userInfo?.phone || "No phone"}
                           </p>
                         </div>
                       </div>
@@ -238,7 +238,7 @@ export default function BoughtOrdersContent() {
                     {/* Products */}
                     <div className="space-y-3">
                       <p className="font-semibold text-gray-900">Products</p>
-                      {order?.items?.map((item, itemIndex) => (
+                      {order?.products?.map((item, itemIndex) => (
                         <div
                           key={itemIndex}
                           ref={(el) => {
@@ -247,11 +247,11 @@ export default function BoughtOrdersContent() {
                           className="flex gap-4 rounded-lg border border-gray-200 bg-white p-3 transition-colors hover:bg-gray-50"
                         >
                           {/* Product Image */}
-                          {item?.productId?.image && (
+                          {item?.thumbnail && (
                             <div className="relative size-20 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
                               <Image
-                                src={item.productId.image}
-                                alt={item.productId.title}
+                                src={item.thumbnail}
+                                alt={item.title}
                                 fill
                                 className="object-cover"
                               />
@@ -261,10 +261,10 @@ export default function BoughtOrdersContent() {
                           {/* Product Info */}
                           <div className="flex-1 space-y-1">
                             <Link
-                              href={`/products/${item.productId?.slug}`}
+                              href={`/products/${item?.slug}`}
                               className="text-sm font-semibold text-blue-600 hover:underline"
                             >
-                              {item.productId?.title || "Unknown Product"}
+                              {item?.title || "Unknown Product"}
                             </Link>
                             <p className="text-xs text-gray-600">
                               Qty: {item.quantity}
@@ -284,8 +284,9 @@ export default function BoughtOrdersContent() {
                           <span className="text-gray-600">Subtotal</span>
                           <span className="font-medium text-gray-900">
                             {formatCurrency(
-                              order?.items?.reduce(
-                                (sum, item) => sum + (item.price || 0) * item.quantity,
+                              order?.products?.reduce(
+                                (sum, item) =>
+                                  sum + (item.price || 0) * item.quantity,
                                 0,
                               ) || 0,
                             )}
@@ -297,7 +298,7 @@ export default function BoughtOrdersContent() {
                             {formatCurrency(order?.shippingCost || 0)}
                           </span>
                         </div>
-                        {order?.discount > 0 && (
+                        {order?.discountPercentage > 0 && (
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Discount</span>
                             <span className="font-medium text-green-600">
@@ -307,9 +308,11 @@ export default function BoughtOrdersContent() {
                         )}
                         <div className="border-t border-gray-200 pt-2">
                           <div className="flex justify-between">
-                            <span className="font-semibold text-gray-900">Total</span>
+                            <span className="font-semibold text-gray-900">
+                              Total
+                            </span>
                             <span className="text-lg font-bold text-emerald-600">
-                              {formatCurrency(order?.total || 0)}
+                              {formatCurrency(order?.totalOrderPrice || 0)}
                             </span>
                           </div>
                         </div>
@@ -319,7 +322,7 @@ export default function BoughtOrdersContent() {
                     {/* Payment Method */}
                     <div className="mt-4 flex items-center gap-2">
                       <span className="text-sm text-gray-600">Payment:</span>
-                      <PaymentMethodPill method={order?.paymentMethod} />
+                      <PaymentMethodPill method={order?.method} />
                     </div>
                   </div>
                 </div>

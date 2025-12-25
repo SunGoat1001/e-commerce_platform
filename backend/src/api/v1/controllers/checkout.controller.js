@@ -1,6 +1,9 @@
+const mongoose = require("mongoose");
 const Cart = require("../../../models/cart.model.js");
 const Order = require("../../../models/order.model.js");
 const Product = require("../../../models/product.model.js");
+const User = require("../../../models/user.model.js");
+const Account = require("../../../models/account.model.js");
 // Import các tiện ích API (Giả định)
 const ResponseFormatter = require("../../../utils/response.js");
 const ApiError = require("../../../utils/apiError.js");
@@ -63,6 +66,40 @@ async function applyCartPostCheckout(cartId, purchasedItems) {
 
   await Cart.updateOne({ _id: cartId }, { $set: { products: updatedProducts } });
 }
+
+const resolveSellerByAccount = async (accountId, cache) => {
+  if (!accountId) return null;
+  const cacheKey = accountId.toString();
+
+  if (cache.has(cacheKey)) {
+    return cache.get(cacheKey);
+  }
+
+  const account = await Account.findById(accountId).lean();
+  if (!account) {
+    cache.set(cacheKey, null);
+    return null;
+  }
+
+  const sellerUser = await User.findOne({
+    email: account.email,
+    deleted: false,
+  })
+    .select("_id fullName avatar shopName")
+    .lean();
+
+  const result = sellerUser
+    ? {
+        id: sellerUser._id.toString(),
+        name: sellerUser.fullName,
+        avatar: sellerUser.avatar || null,
+        shopName: sellerUser.shopName || account.fullName || null,
+      }
+    : null;
+
+  cache.set(cacheKey, result);
+  return result;
+};
 
 // [GET] /checkout (Xem trang thanh toán)
 module.exports.index = async (req, res, next) => {
@@ -185,7 +222,7 @@ module.exports.getOrder = async (req, res, next) => {
 
     const orders = await Order.find(filter)
       .sort({ createdAt: -1 }) // Sắp xếp đơn hàng mới nhất lên đầu
-      .populate("products.product_id", "title thumbnail slug") // Lấy thông tin sản phẩm
+      .populate("products.product_id", "title thumbnail slug accountId") // Lấy thông tin sản phẩm + chủ shop
       .skip(skip)
       .limit(parseInt(limit))
       .lean();
@@ -195,39 +232,53 @@ module.exports.getOrder = async (req, res, next) => {
       return ResponseFormatter.success(res, { orders: [] }, "No orders found for this user.");
     }
 
-    const formattedOrders = orders.map(order => {
-      let totalOrderPrice = 0;
-      const products = order.products.map(item => {
-        const productInfo = item.product_id;
-        const finalPrice = item.price * (1 - (item.discountPercentage || 0) / 100);
-        const itemTotalPrice = finalPrice * item.quantity;
-        totalOrderPrice += itemTotalPrice;
+    const sellerCache = new Map();
+
+    const formattedOrders = await Promise.all(
+      orders.map(async (order) => {
+        let totalOrderPrice = 0;
+        const products = await Promise.all(
+          (order.products || []).map(async (item) => {
+            const productInfo = item.product_id;
+            const finalPrice = item.price * (1 - (item.discountPercentage || 0) / 100);
+            const itemTotalPrice = finalPrice * item.quantity;
+            totalOrderPrice += itemTotalPrice;
+
+            const seller = productInfo?.accountId
+              ? await resolveSellerByAccount(productInfo.accountId, sellerCache)
+              : null;
+
+            return {
+              productId: productInfo ? productInfo._id : null,
+              title: productInfo ? productInfo.title : "Unknown Product",
+              thumbnail: productInfo ? productInfo.thumbnail : null,
+              slug: productInfo ? productInfo.slug : null,
+              price: item.price,
+              discountPercentage: item.discountPercentage,
+              finalPrice: parseFloat(finalPrice.toFixed(2)),
+              quantity: item.quantity,
+              itemTotalPrice: parseFloat(itemTotalPrice.toFixed(2)),
+              seller,
+            };
+          })
+        );
+
+        const primarySeller = products.find((p) => p.seller)?.seller || null;
 
         return {
-          productId: productInfo ? productInfo._id : null,
-          title: productInfo ? productInfo.title : "Unknown Product",
-          thumbnail: productInfo ? productInfo.thumbnail : null,
-          slug: productInfo ? productInfo.slug : null,
-          price: item.price,
-          discountPercentage: item.discountPercentage,
-          finalPrice: parseFloat(finalPrice.toFixed(2)),
-          quantity: item.quantity,
-          itemTotalPrice: parseFloat(itemTotalPrice.toFixed(2)),
+          _id: order._id,
+          userInfo: order.userInfo,
+          products,
+          seller: primarySeller,
+          method: order.method,
+          status: order.status,
+          isPaid: order.isPaid,
+          paidAt: order.paidAt,
+          createdAt: order.createdAt,
+          totalOrderPrice: parseFloat(totalOrderPrice.toFixed(2)),
         };
-      });
-
-      return {
-        _id: order._id,
-        userInfo: order.userInfo,
-        products: products,
-        method: order.method,
-        status: order.status,
-        isPaid: order.isPaid,
-        paidAt: order.paidAt,
-        createdAt: order.createdAt,
-        totalOrderPrice: parseFloat(totalOrderPrice.toFixed(2)),
-      };
-    });
+      })
+    );
 
     const totalOrders = await Order.countDocuments(filter);
 
@@ -271,7 +322,7 @@ module.exports.getBought = async (req, res, next) => {
 
     const orders = await Order.find(filter)
       .sort({ createdAt: -1 }) // Sắp xếp đơn hàng mới nhất lên đầu
-      .populate("products.product_id", "title thumbnail slug") // Lấy thông tin sản phẩm
+      .populate("products.product_id", "title thumbnail slug accountId") // Lấy thông tin sản phẩm + chủ shop
       .skip(skip)
       .limit(parseInt(limit))
       .lean();
@@ -280,39 +331,53 @@ module.exports.getBought = async (req, res, next) => {
       return ResponseFormatter.success(res, { orders: [] }, "No orders found for this user.");
     }
 
-    const formattedOrders = orders.map(order => {
-      let totalOrderPrice = 0;
-      const products = order.products.map(item => {
-        const productInfo = item.product_id;
-        const finalPrice = item.price * (1 - (item.discountPercentage || 0) / 100);
-        const itemTotalPrice = finalPrice * item.quantity;
-        totalOrderPrice += itemTotalPrice;
+    const sellerCache = new Map();
+
+    const formattedOrders = await Promise.all(
+      orders.map(async (order) => {
+        let totalOrderPrice = 0;
+        const products = await Promise.all(
+          (order.products || []).map(async (item) => {
+            const productInfo = item.product_id;
+            const finalPrice = item.price * (1 - (item.discountPercentage || 0) / 100);
+            const itemTotalPrice = finalPrice * item.quantity;
+            totalOrderPrice += itemTotalPrice;
+
+            const seller = productInfo?.accountId
+              ? await resolveSellerByAccount(productInfo.accountId, sellerCache)
+              : null;
+
+            return {
+              productId: productInfo ? productInfo._id : null,
+              title: productInfo ? productInfo.title : "Unknown Product",
+              thumbnail: productInfo ? productInfo.thumbnail : null,
+              slug: productInfo ? productInfo.slug : null,
+              price: item.price,
+              discountPercentage: item.discountPercentage,
+              finalPrice: parseFloat(finalPrice.toFixed(2)),
+              quantity: item.quantity,
+              itemTotalPrice: parseFloat(itemTotalPrice.toFixed(2)),
+              seller,
+            };
+          })
+        );
+
+        const primarySeller = products.find((p) => p.seller)?.seller || null;
 
         return {
-          productId: productInfo ? productInfo._id : null,
-          title: productInfo ? productInfo.title : "Unknown Product",
-          thumbnail: productInfo ? productInfo.thumbnail : null,
-          slug: productInfo ? productInfo.slug : null,
-          price: item.price,
-          discountPercentage: item.discountPercentage,
-          finalPrice: parseFloat(finalPrice.toFixed(2)),
-          quantity: item.quantity,
-          itemTotalPrice: parseFloat(itemTotalPrice.toFixed(2)),
+          _id: order._id,
+          userInfo: order.userInfo,
+          products,
+          seller: primarySeller,
+          method: order.method,
+          status: order.status,
+          isPaid: order.isPaid,
+          paidAt: order.paidAt,
+          createdAt: order.createdAt,
+          totalOrderPrice: parseFloat(totalOrderPrice.toFixed(2)),
         };
-      });
-
-      return {
-        _id: order._id,
-        userInfo: order.userInfo,
-        products: products,
-        method: order.method,
-        status: order.status,
-        isPaid: order.isPaid,
-        paidAt: order.paidAt,
-        createdAt: order.createdAt,
-        totalOrderPrice: parseFloat(totalOrderPrice.toFixed(2)),
-      };
-    });
+      })
+    );
 
     const totalOrders = await Order.countDocuments(filter);
 
@@ -676,5 +741,97 @@ module.exports.confirmPayment = async (req, res, next) => {
   } catch (err) {
     console.error("❌ Error confirming payment:", err);
     next(new ApiError(500, "Failed to confirm payment."));
+  }
+};
+
+// [GET] /api/v1/checkout/order/:orderId/confirm
+// Handle "Confirm Received" from shipment email
+module.exports.confirmOrderReceived = async (req, res, next) => {
+  try {
+    const { orderId } = req.params;
+    const { token } = req.query;
+
+    if (!orderId || !token) {
+      return next(new ApiError(400, "Order ID and confirmation token are required."));
+    }
+
+    // Find order and verify token
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return next(new ApiError(404, "Order not found."));
+    }
+
+    // Verify confirmation token matches and hasn't expired
+    if (order.confirmationToken !== token) {
+      return next(new ApiError(403, "Invalid confirmation token."));
+    }
+
+    // Check if link has expired (30 days from shipmentEmailSentAt)
+    if (order.shipmentEmailSentAt) {
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      if (new Date(order.shipmentEmailSentAt) < thirtyDaysAgo) {
+        return next(new ApiError(410, "Confirmation link has expired."));
+      }
+    }
+
+    // Check if already confirmed
+    if (order.isReceived) {
+      return ResponseFormatter.success(
+        res,
+        {
+          orderId: order._id,
+          status: "already_confirmed",
+          receivedAt: order.receivedAt,
+        },
+        "This order has already been confirmed as received."
+      );
+    }
+
+    // Update order to mark as received
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      {
+        isReceived: true,
+        receivedAt: new Date(),
+        status: "delivered",
+        isFeedback: true,
+      },
+      { new: true }
+    );
+
+    // Add all purchased product IDs to user's waiting review list
+    if (order.user_id) {
+      const productIds = (order.products || [])
+        .map((item) => {
+          if (!item || !item.product_id) return null;
+          try {
+            return new mongoose.Types.ObjectId(item.product_id);
+          } catch (err) {
+            return null;
+          }
+        })
+        .filter(Boolean);
+
+      if (productIds.length) {
+        await User.findByIdAndUpdate(order.user_id, {
+          $addToSet: { productsWaitingReview: { $each: productIds } },
+        });
+      }
+    }
+
+    return ResponseFormatter.success(
+      res,
+      {
+        orderId: updatedOrder._id,
+        status: "confirmed",
+        receivedAt: updatedOrder.receivedAt,
+        message: "Thank you for confirming receipt!",
+      },
+      "Order confirmed as received successfully."
+    );
+  } catch (err) {
+    console.error("❌ Error confirming order receipt:", err);
+    next(new ApiError(500, "Failed to confirm order receipt."));
   }
 };

@@ -21,6 +21,12 @@ const userSchema = new mongoose.Schema(
     deleted: { type: Boolean, default: false },
     deletedAt: { type: Date },
     status: { type: String, enum: ["active", "inactive"], default: "active" },
+    productsWaitingReview: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
   },
   {
     timestamps: true,

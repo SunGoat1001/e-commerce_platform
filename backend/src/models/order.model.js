@@ -41,6 +41,12 @@ const orderSchema = new mongoose.Schema(
     stripePaymentIntentId: { type: String, default: null },
     isPaid: { type: Boolean, default: false },
     paidAt: { type: Date, default: null },
+    // Order confirmation fields
+    confirmationToken: { type: String, default: null },
+    isReceived: { type: Boolean, default: false },
+    receivedAt: { type: Date, default: null },
+    shipmentEmailSentAt: { type: Date, default: null },
+    isFeedback: {type: Boolean, default: false},
     deleted: { type: Boolean, default: false },
     deletedAt: { type: Date },
   },

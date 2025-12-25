@@ -47,6 +47,37 @@ router.get("/", controller.index);
  *       201:
  *         description: Order created successfully
  */
+// More specific routes must come BEFORE generic ones
+/**
+ * @swagger
+ * /api/v1/checkout/order/{orderId}/confirm:
+ *   get:
+ *     summary: Confirm order received (from shipment email link)
+ *     tags:
+ *       - Checkout
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Order ID
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Confirmation token from email
+ *     responses:
+ *       200:
+ *         description: Order confirmed as received
+ *       403:
+ *         description: Invalid confirmation token
+ *       410:
+ *         description: Confirmation link expired
+ */
+router.get("/order/:orderId/confirm", controller.confirmOrderReceived);
+
 router.get("/order", userMiddleware.infoUser, controller.getOrder);
 router.post("/order", userMiddleware.infoUser, controller.order);
 
