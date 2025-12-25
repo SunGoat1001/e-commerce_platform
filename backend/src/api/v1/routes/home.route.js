@@ -14,6 +14,9 @@ const controller = require('../controllers/home.controller.js');
  *       200:
  *         description: Home page products
  */
-router.get('/', controller.getHomeProducts);
+// router.get('/', controller.getHomeProducts);
+router.get('/', (req, res) => {
+    res.send("Hellocdddmm")
+});
 
 module.exports = router;
