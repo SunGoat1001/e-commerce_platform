@@ -18,9 +18,28 @@ export default function useChat(initialParticipantId) {
     const [activeParticipantId, setActiveParticipantId] = useState(
         initialParticipantId || null
     );
+    const [activeParticipantInfo, setActiveParticipantInfo] = useState(null);
     const [loadingConversations, setLoadingConversations] = useState(false);
     const [loadingMessages, setLoadingMessages] = useState(false);
     const [socketConnected, setSocketConnected] = useState(false);
+
+    const normalizeMessages = useCallback((list = []) => {
+        try {
+            const map = new Map();
+            for (const m of list) {
+                const key = (m?.id || m?._id || '').toString();
+                const fallback = `${m?.sender}-${m?.receiver}-${m?.timestamp}`;
+                map.set(key || fallback, m);
+            }
+            return Array.from(map.values()).sort((a, b) => {
+                const at = new Date(a?.timestamp || 0).getTime();
+                const bt = new Date(b?.timestamp || 0).getTime();
+                return at - bt;
+            });
+        } catch {
+            return Array.isArray(list) ? list : [];
+        }
+    }, []);
 
     const activeConversationId = useMemo(() => {
         if (!currentUserId || !activeParticipantId) return null;
@@ -78,15 +97,24 @@ export default function useChat(initialParticipantId) {
     const fetchHistory = useCallback(
         async (otherUserId) => {
             if (!otherUserId) return;
+            console.log("Fetching history for:", otherUserId);
             setLoadingMessages(true);
             try {
                 const res = await fetch(`${API_URL}/chat/history/${otherUserId}`, {
                     credentials: "include",
                 });
+                console.log("Chat history response status:", res.status, res.statusText);
                 const payload = await res.json();
+                console.log("Chat history response payload:", payload);
                 if (res.ok) {
                     setActiveParticipantId(otherUserId);
-                    setMessages(payload?.data?.messages || []);
+                    setMessages(normalizeMessages(payload?.data?.messages || []));
+
+                    // Store participant info for new conversations
+                    if (payload?.data?.participant) {
+                        console.log("Setting participant info:", payload.data.participant);
+                        setActiveParticipantInfo(payload.data.participant);
+                    }
 
                     setConversations((prev) => {
                         return prev.map((c) =>
@@ -95,6 +123,8 @@ export default function useChat(initialParticipantId) {
                                 : c
                         );
                     });
+                } else {
+                    console.error("Failed to fetch chat history:", payload);
                 }
             } catch (error) {
                 console.error("Failed to fetch chat history", error);
@@ -116,25 +146,25 @@ export default function useChat(initialParticipantId) {
             setConversations((prev) => {
                 const existing = prev.find((c) => c.otherUser?.id === otherUserId);
                 if (existing) {
-                    return prev.map((c) =>
-                        c.otherUser?.id === otherUserId
-                            ? {
-                                ...c,
-                                lastMessage: {
-                                    id: message.id || message._id,
-                                    sender,
-                                    receiver,
-                                    content,
-                                    timestamp,
-                                    isRead,
-                                },
-                                unreadCount:
-                                    activeParticipantId === otherUserId && activeConversationId === conversationId
-                                        ? 0
-                                        : c.unreadCount + (sender?.toString() !== currentUserId ? 1 : 0),
-                            }
-                            : c
-                    );
+                    return prev.map((c) => {
+                        if (c.otherUser?.id !== otherUserId) return c;
+                        const prevLastId = c.lastMessage?.id || c.lastMessage?._id;
+                        const newId = message.id || message._id;
+                        const isActive = activeParticipantId === otherUserId && activeConversationId === conversationId;
+                        const shouldIncrement = !isActive && (sender?.toString() !== currentUserId) && (newId?.toString() !== prevLastId?.toString());
+                        return {
+                            ...c,
+                            lastMessage: {
+                                id: newId,
+                                sender,
+                                receiver,
+                                content,
+                                timestamp,
+                                isRead,
+                            },
+                            unreadCount: isActive ? 0 : c.unreadCount + (shouldIncrement ? 1 : 0),
+                        };
+                    });
                 }
 
                 return [
@@ -164,14 +194,23 @@ export default function useChat(initialParticipantId) {
             const { sender, receiver, conversationId } = message;
             const participantId = sender?.toString() === currentUserId ? receiver?.toString() : sender?.toString();
 
+            let appended = false;
             if (participantId && activeParticipantId === participantId) {
-                setMessages((prev) => [...prev, message]);
+                setMessages((prev) => {
+                    const exists = prev.some(
+                        (m) => (m.id || m._id)?.toString() === (message.id || message._id)?.toString()
+                    );
+                    appended = !exists;
+                    return exists ? prev : [...prev, message];
+                });
             }
 
-            upsertConversationFromMessage(message);
-
-            if (!conversations.some((c) => c.otherUser?.id === participantId)) {
-                fetchConversations();
+            // Only upsert and refresh conversations if this message wasn't already present
+            if (appended) {
+                upsertConversationFromMessage(message);
+                if (!conversations.some((c) => c.otherUser?.id === participantId)) {
+                    fetchConversations();
+                }
             }
         },
         [activeParticipantId, conversations, currentUserId, fetchConversations, upsertConversationFromMessage]
@@ -193,21 +232,21 @@ export default function useChat(initialParticipantId) {
                 isRead: true,
             };
 
-            setMessages((prev) => [...prev, optimistic]);
+            setMessages((prev) => normalizeMessages([...(prev || []), optimistic]));
             upsertConversationFromMessage(optimistic);
 
             socket.emit("sendMessage", { receiverId, content: trimmed }, (resp) => {
                 if (resp?.ok && resp.message) {
                     const saved = resp.message;
-                    setMessages((prev) =>
+                    setMessages((prev) => normalizeMessages(
                         prev.map((msg) => (msg.id === optimistic.id ? saved : msg))
-                    );
+                    ));
                     upsertConversationFromMessage(saved);
                     fetchConversations();
                 }
             });
         },
-        [connectSocket, currentUserId, fetchConversations, upsertConversationFromMessage]
+        [connectSocket, currentUserId, fetchConversations, upsertConversationFromMessage, normalizeMessages]
     );
 
     useEffect(() => {
@@ -240,6 +279,7 @@ export default function useChat(initialParticipantId) {
         conversations,
         messages,
         activeParticipantId,
+        activeParticipantInfo,
         activeConversationId,
         loadingConversations,
         loadingMessages,

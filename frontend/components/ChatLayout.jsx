@@ -16,6 +16,7 @@ export default function ChatLayout() {
     conversations,
     messages,
     activeParticipantId,
+    activeParticipantInfo,
     loadingConversations,
     loadingMessages,
     currentUserId,
@@ -24,17 +25,23 @@ export default function ChatLayout() {
   } = useChat(requestedParticipant);
 
   useEffect(() => {
-    if (requestedParticipant) {
-      fetchHistory(requestedParticipant);
-    }
-  }, [fetchHistory, requestedParticipant]);
+    // History loading is handled by useChat when initialized with requestedParticipant
+    // Avoid double-fetching here to prevent duplicate state updates
+  }, [requestedParticipant]);
 
-  const activeParticipant = useMemo(
-    () =>
-      conversations.find((c) => c.otherUser?.id === activeParticipantId)
-        ?.otherUser || null,
-    [conversations, activeParticipantId],
-  );
+  const activeParticipant = useMemo(() => {
+    const fromConversation = conversations.find(
+      (c) => c.otherUser?.id === activeParticipantId,
+    )?.otherUser;
+    const result = fromConversation || activeParticipantInfo || null;
+    console.log("Active participant:", {
+      activeParticipantId,
+      fromConversation,
+      activeParticipantInfo,
+      result,
+    });
+    return result;
+  }, [conversations, activeParticipantId, activeParticipantInfo]);
 
   const handleSelectConversation = (userId) => {
     fetchHistory(userId);
@@ -58,7 +65,7 @@ export default function ChatLayout() {
         </div>
 
         <div className="flex w-full flex-1 flex-col gap-3">
-          {activeParticipant ? (
+          {activeParticipantId && activeParticipant ? (
             <>
               <MessageThread
                 messages={messages}
@@ -70,6 +77,15 @@ export default function ChatLayout() {
                 disabled={!activeParticipantId}
               />
             </>
+          ) : activeParticipantId && loadingMessages ? (
+            <div className="flex h-full min-h-[420px] flex-col items-center justify-center rounded-2xl border border-gray-100 bg-white/70 p-8 text-center shadow-sm">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 text-orange-600">
+                <MessageSquare className="h-6 w-6 animate-pulse" />
+              </div>
+              <p className="mt-4 text-lg font-semibold text-gray-900">
+                Loading conversation...
+              </p>
+            </div>
           ) : (
             <div className="flex h-full min-h-[420px] flex-col items-center justify-center rounded-2xl border border-dashed border-orange-200 bg-white/70 p-8 text-center shadow-sm">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 text-orange-600">

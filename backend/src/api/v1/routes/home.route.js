@@ -16,7 +16,7 @@ const controller = require('../controllers/home.controller.js');
  */
 // router.get('/', controller.getHomeProducts);
 router.get('/', (req, res) => {
-    res.send("Hellocdddmm")
+    res.send("lz huy")
 });
 
 module.exports = router;

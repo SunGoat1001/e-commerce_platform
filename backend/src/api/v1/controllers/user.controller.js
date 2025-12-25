@@ -142,7 +142,7 @@ module.exports.loginPost = async (req, res, next) => {
       secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
-    
+
     res.cookie("userId", user._id, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -516,11 +516,26 @@ module.exports.getShop = async (req, res, next) => {
 
     const account = await Account.findById(id);
 
+    if (!account) {
+      return next(new ApiError(404, "Cửa hàng không tồn tại."));
+    }
+
+    // Attempt to resolve the seller's User document by email
+    // In this app, seller accounts are created from the user's email when they become a seller
+    const sellerUser = await User.findOne({ email: account.email, deleted: false })
+      .select("_id fullName avatar isSeller shopName");
+
     return ResponseFormatter.success(
       res,
       {
         shop: {
           ...account.toObject(),
+          // Provide the corresponding User id for chat feature
+          userId: sellerUser?._id || null,
+          // Convenience fields for UI
+          name: account.fullName || sellerUser?.shopName || sellerUser?.fullName || null,
+          avatar: account.avatar || sellerUser?.avatar || null,
+          isSeller: sellerUser?.isSeller ?? true,
         },
       },
       "Lấy thông tin cửa hàng thành công."

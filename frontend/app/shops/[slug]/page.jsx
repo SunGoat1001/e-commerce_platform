@@ -2,11 +2,13 @@ import Header from "@/components/header";
 import InfiniteProductGrid from "@/components/infinite-product-grid";
 import ProductGridSkeleton from "@/components/product-grid-skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { API_URL } from "@/lib/constants";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { Star } from "lucide-react";
+import { Star, MessageSquare } from "lucide-react";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -73,6 +75,8 @@ function ShopHeader({
 }) {
   const name = shop?.name || shop?.shopName || shop?.fullName || "Shop";
   const avatar = shop?.avatar || shop?.avatarUrl || shop?.thumbnail;
+  // Use the corresponding User id provided by backend for chat
+  const userId = shop?.userId || shop?.chatUserId || null;
   const safeRating = clampRating(rating);
   const safeReviews = Number.isFinite(Number(totalReviews))
     ? Number(totalReviews)
@@ -80,7 +84,7 @@ function ShopHeader({
 
   return (
     <Card className="mt-4 mb-6 border-orange-100 bg-white/90 shadow-md">
-      <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-4">
           <Avatar className="h-16 w-16 border border-orange-100 bg-orange-50">
             {avatar ? <AvatarImage src={avatar} alt={`${name} logo`} /> : null}
@@ -115,6 +119,16 @@ function ShopHeader({
               <p className="max-w-2xl text-sm text-gray-600">{description}</p>
             ) : null}
           </div>
+          {userId && (
+            <div className="flex items-center sm:self-start">
+              <Link href={`/chat?with=${userId}`}>
+                <Button className="rounded bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700">
+                  <MessageSquare className="mr-2 h-4 w-4 rounded" />
+                  Message Shop
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
