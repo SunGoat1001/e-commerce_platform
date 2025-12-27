@@ -332,47 +332,31 @@ export default function OrdersPage() {
 
             {!loading && !error && visibleOrders.length > 0 && (
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                {visibleOrders.map((order, idx) => {
-                  const sellerId =
-                    order?.seller?.id ||
-                    order?.products?.find((item) => item?.seller?.id)?.seller?.id ||
-                    null;
-
-                  return (
-                    <div
-                      key={order._id}
-                      ref={(el) => {
-                        if (el) cardRefs.current[idx] = el;
-                      }}
-                      className="h-full rounded-2xl border border-gray-100 bg-white/80 p-6 shadow-sm backdrop-blur"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="space-y-1">
-                          <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                            Order ID
-                          </p>
-                          <p className="text-base font-semibold break-all text-gray-900">
-                            {order._id}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Created {formatDateTime(order.createdAt)}
-                          </p>
-                        </div>
-                        <div className="flex flex-col items-end gap-2 text-right">
-                          <StatusBadge status={order.status} />
-                          <PaymentBadge isPaid={order.isPaid} />
-                          {sellerId && (
-                            <Button
-                              variant="outline"
-                              onClick={() => handleContactSeller(sellerId)}
-                              className="mt-1 border-orange-200 text-orange-600 hover:bg-orange-50"
-                            >
-                              <MessageSquare className="mr-2 h-4 w-4" />
-                              Contact Seller
-                            </Button>
-                          )}
-                        </div>
+                {visibleOrders.map((order, idx) => (
+                  <div
+                    key={order._id}
+                    ref={(el) => {
+                      if (el) cardRefs.current[idx] = el;
+                    }}
+                    className="h-full rounded-2xl border border-gray-100 bg-white/80 p-6 shadow-sm backdrop-blur"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
+                          Order ID
+                        </p>
+                        <p className="text-base font-semibold break-all text-gray-900">
+                          {order._id}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Created {formatDateTime(order.createdAt)}
+                        </p>
                       </div>
+                      <div className="flex flex-col items-end gap-2 text-right">
+                        <StatusBadge status={order.status} />
+                        <PaymentBadge isPaid={order.isPaid} />
+                      </div>
+                    </div>
 
                     <div className="mt-5 grid grid-cols-1 gap-3 rounded-xl bg-gray-50/80 p-4 sm:grid-cols-2">
                       <div className="flex items-center gap-3 text-sm text-gray-700">
