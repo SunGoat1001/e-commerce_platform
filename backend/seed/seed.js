@@ -766,7 +766,7 @@ const seedDatabase = async () => {
     const shopAccount = await seedShopAccount(roles);
 
     // 3. Seed other Users and Accounts
-    const users = await seedUsers(1);
+    const users = await seedUsers(5);
     const accounts = [
       rootAccount,
       shopAccount,
@@ -778,7 +778,7 @@ const seedDatabase = async () => {
       categories,
       accounts,
       shopAccount,
-      1000
+      500
     );
     const carts = await seedCarts(users, products, 5);
     await seedOrders(carts, products, users, 50);
